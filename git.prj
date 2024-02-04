@@ -1,0 +1,82 @@
+{
+  "Root":{
+    "Folders":[],
+    "Name":"+git (target)",
+    "Files":[{
+        "filename":"Activation_mod.f90",
+        "enabled":"1",
+        "panel":1,
+        "open":"1"
+      },{
+        "filename":"Activation_test.f90",
+        "enabled":"1"
+      },{
+        "filename":"circle.f90",
+        "enabled":"1"
+      },{
+        "filename":"LICENSE",
+        "enabled":"1"
+      },{
+        "filename":"README.md",
+        "enabled":"1"
+      }]
+  },
+  "Name":"git (target)",
+  "Options":{
+    "Compiler Options":{
+      "Fortran Flags":"",
+      "Link Flags":"",
+      "C Flags":""
+    },
+    "Architecture":0,
+    "Type":0,
+    "Revision":2,
+    "Windows GUI":0,
+    "File Options":{
+      "Library Directories":["Default Library Directory"],
+      "Build Directory":"build",
+      "Module Directory":"modules",
+      "Include Directories":["Default Include Directory"]
+    },
+    "Target":"target",
+    "Fortran Options":{
+      "Floating Point Exception Trap":0,
+      "Initialize Variables to Zero":"false",
+      "Use C Preprocessor":"false",
+      "Runtime Diagnostics":"false",
+      "Cray Pointers":"false",
+      "Disable Floating Point Exception Warnings":0,
+      "Enable OpenMP":"false",
+      "Enable Coarrays":"false",
+      "Default Double for Real":"false"
+    },
+    "Code Generation Options":{
+      "CPU Specific":"false",
+      "Processor":"generic",
+      "Aggressive Loops":"false",
+      "Debugging":"true",
+      "Optimization Mode":0,
+      "Profiling":"false",
+      "Link Time Optimization":"false"
+    },
+    "Build Dependencies":1,
+    "Launch Options":{
+      "Working Directory":"",
+      "Launch Using MPI":"false",
+      "Keep Console":"true",
+      "External Console":"false",
+      "Command Line Arguments":"",
+      "Build Before Launch":"true"
+    },
+    "Build Options":{
+      "Auto Management":"true",
+      "Makefile":"Makefile.IUJO",
+      "Auto Makefile":"true"
+    },
+    "Linker Options":{
+      "Static Linking Mode":7,
+      "Link MPI Library":"false",
+      "Link LAPACK":0
+    }
+  }
+}
