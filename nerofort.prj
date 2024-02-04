@@ -1,21 +1,30 @@
 {
   "Root":{
-    "Folders":[],
+    "Folders":[{
+        "Folders":[],
+        "Name":"+src",
+        "Files":[{
+            "filename":"src/Activation_mod.f90",
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
+          },{
+            "filename":"src/circle.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/Cost_mod.f90",
+            "enabled":"1"
+          }]
+      },{
+        "Folders":[],
+        "Name":"+test",
+        "Files":[{
+            "filename":"test/Activation_test.f90",
+            "enabled":"1"
+          }]
+      }],
     "Name":"+nerofort (target)",
-    "Files":[{
-        "filename":"Activation_mod.f90",
-        "enabled":"1",
-        "panel":1,
-        "open":"1"
-      },{
-        "filename":"Activation_test.f90",
-        "enabled":"1",
-        "panel":1,
-        "open":"1"
-      },{
-        "filename":"circle.f90",
-        "enabled":"1"
-      }]
+    "Files":[]
   },
   "Name":"nerofort (target)",
   "Options":{
