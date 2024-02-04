@@ -10,23 +10,29 @@
             "open":"1"
           },{
             "filename":"src/circle.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Cost_mod.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           }]
       },{
         "Folders":[],
         "Name":"+test",
         "Files":[{
             "filename":"test/Activation_test.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           }]
       }],
-    "Name":"+nerofort (target)",
+    "Name":"+nerofort (target.so)",
     "Files":[]
   },
-  "Name":"nerofort (target)",
+  "Name":"nerofort (target.so)",
   "Options":{
     "Compiler Options":{
       "Fortran Flags":"",
@@ -43,7 +49,7 @@
       "Module Directory":"modules",
       "Include Directories":["Default Include Directory"]
     },
-    "Target":"target",
+    "Target":"target.so",
     "Fortran Options":{
       "Floating Point Exception Trap":0,
       "Initialize Variables to Zero":"false",
@@ -66,12 +72,13 @@
     },
     "Build Dependencies":1,
     "Launch Options":{
+      "Build Before Launch":"true",
       "Working Directory":"",
       "Launch Using MPI":"false",
       "Keep Console":"true",
-      "External Console":"false",
+      "Executable":"target",
       "Command Line Arguments":"",
-      "Build Before Launch":"true"
+      "External Console":"false"
     },
     "Build Options":{
       "Auto Management":"true",

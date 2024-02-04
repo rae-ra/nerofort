@@ -1,6 +1,7 @@
 module Activation_mod
     implicit none
     private
+    public :: create_activation
     
     
     integer, parameter, public :: sp = selected_real_kind(6, 37)
@@ -46,6 +47,13 @@ module Activation_mod
     
 
 contains
+
+    function create_activation(activation_type) result(activ_ptr)
+        character(len=10), intent(in) :: activation_type
+        type(Activation), pointer :: activ_ptr
+
+        activ_ptr = Activation(activation_type)
+    end function create_activation
     
     function init_0(activation_type) result(activ)
         character(len=10), intent(in) :: activation_type
