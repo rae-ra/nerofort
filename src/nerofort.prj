@@ -1,7 +1,7 @@
 {
   "Root":{
     "Folders":[],
-    "Name":"+git (target)",
+    "Name":"+nerofort (target)",
     "Files":[{
         "filename":"Activation_mod.f90",
         "enabled":"1",
@@ -9,19 +9,15 @@
         "open":"1"
       },{
         "filename":"Activation_test.f90",
-        "enabled":"1"
+        "enabled":"1",
+        "panel":1,
+        "open":"1"
       },{
         "filename":"circle.f90",
         "enabled":"1"
-      },{
-        "filename":"LICENSE",
-        "enabled":"1"
-      },{
-        "filename":"README.md",
-        "enabled":"1"
       }]
   },
-  "Name":"git (target)",
+  "Name":"nerofort (target)",
   "Options":{
     "Compiler Options":{
       "Fortran Flags":"",
@@ -70,7 +66,7 @@
     },
     "Build Options":{
       "Auto Management":"true",
-      "Makefile":"Makefile.IUJO",
+      "Makefile":"Makefile.nerofort",
       "Auto Makefile":"true"
     },
     "Linker Options":{
