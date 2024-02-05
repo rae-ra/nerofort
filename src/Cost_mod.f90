@@ -1,5 +1,5 @@
 module Cost_mod
-    use Activation_mod
+    use Math_Util, only: dp, clip
     implicit none
     
     public :: clip
@@ -20,19 +20,6 @@ module Cost_mod
 
     contains
     
-    subroutine clip (a,low,up, clip_a) 
-        real(dp), dimension(:, :), intent(in) :: a
-        real(dp), intent(in) :: low,up
-        real(dp), dimension(size(a,1), size(a,2)), intent(out) :: clip_a
-        integer :: i,j
-          
-        do i = 1, size(a, 1)
-          do j = 1, size(a, 2)
-            clip_a(i, j) = max(min(a(i, j), up), low)
-          end do
-        end do
-        
-    end subroutine clip  
 
     subroutine Cost_init(this, cost_type)
         class(Cost), intent(inout) :: this
@@ -83,7 +70,7 @@ module Cost_mod
         else
           eps = 1.0d-12
         end if
-        call clip(a,eps,1.0d0 - eps, clip_a)
+        clip_a = clip(a,eps,1.0d0 - eps)
         Cost_cross_entropy = -sum(y * log(clip_a))
 
     end function Cost_cross_entropy
@@ -102,7 +89,7 @@ module Cost_mod
         else
           eps = 1.0d-12
         end if
-        call clip(a,eps,1.0d0 - eps, clip_a)
+        clip_a = clip(a,eps,1.0d0 - eps)
         part_deriv = -y / clip_a
 
     end function Cost_d_cross_entropy

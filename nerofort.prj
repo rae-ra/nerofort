@@ -1,20 +1,89 @@
 {
   "Root":{
     "Folders":[{
-        "Folders":[],
+        "Folders":[{
+            "Folders":[],
+            "Name":"+data",
+            "Files":[{
+                "filename":"src/dict_mod.f90",
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
+              },{
+                "filename":"test/str_mod.f90",
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
+              }]
+          },{
+            "Folders":[],
+            "Name":"+math",
+            "Files":[{
+                "filename":"test/clip_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/d_prelu_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/d_relu_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/d_sigmoid_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"src/d_softmax_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"src/d_tanh_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/data_types.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/Math_util.f90",
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
+              },{
+                "filename":"test/prelu_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/relu_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/sigmoid_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"test/softmax_mod.f90",
+                "enabled":"1"
+              },{
+                "filename":"src/utility_mod.f90",
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
+              }]
+          }],
         "Name":"+src",
         "Files":[{
             "filename":"src/Activation_mod.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/circle.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/Cost_mod.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/LearningRateDecay_mod.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/Main.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/Optimizer_mod.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/Util.f90",
             "enabled":"1",
             "panel":1,
             "open":"1"
@@ -24,9 +93,7 @@
         "Name":"+test",
         "Files":[{
             "filename":"test/Activation_test.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           }]
       }],
     "Name":"+nerofort (target.so)",

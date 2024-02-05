@@ -1,12 +1,8 @@
 module Activation_mod
+    use Math_util
     implicit none
     private
     public :: create_activation
-    
-    
-    integer, parameter, public :: sp = selected_real_kind(6, 37)
-    integer, parameter, public :: dp = selected_real_kind(15, 307)
-    integer, parameter, public :: qp = selected_real_kind(33, 4931)
     
     real(dp) :: one_dp = 1.0
     
@@ -21,16 +17,6 @@ module Activation_mod
     contains
         procedure :: linear => activ_linear
         procedure :: d_linear => activ_d_linear
-        procedure :: sigmoid => activ_sigmoid
-        procedure :: d_sigmoid => activ_d_sigmoid
-        procedure :: tanh => activ_tanh
-        procedure :: d_tanh => activ_d_tanh
-        procedure :: relu => activ_relu
-        procedure :: d_relu => activ_d_relu
-        procedure :: prelu => activ_prelu
-        procedure :: d_prelu => activ_d_prelu
-        procedure :: softmax => activ_softmax
-        procedure :: d_softmax => activ_d_softmax
         procedure :: print => activation_print
         procedure :: get_activation => get_activation
         procedure :: get_d_activation => get_d_activation
@@ -103,202 +89,32 @@ contains
 
         dy = 1.0
     end function activ_d_linear
-
-    function activ_sigmoid(this, x) result(y)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
-
-        y = 1.0 / (1.0 + exp(-x))
-    end function activ_sigmoid
-    
-    function activ_d_sigmoid(this, x) result(dy)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
-        
-        real(dp), dimension(size(x,1), size(x,2)) :: sig_x
-        
-        sig_x = this%sigmoid(x)
-        
-        dy = sig_x * (one_dp - sig_x)
-    end function activ_d_sigmoid
-
-    function activ_tanh(this, x) result(y)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
-
-        y = tanh(x)
-    end function activ_tanh
-    
-    function activ_d_tanh(this, x) result(dy)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
-
-        dy = 1.0 - tanh(x)**2
-    end function activ_d_tanh
-
-    function activ_relu(this, x) result(y)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
-
-        y = max(0.0, x)
-    end function activ_relu
-    
-    function activ_d_relu(this, x) result(dy)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
-
-        dy = sign(one_dp, x)
-    end function activ_d_relu
-
-    function activ_prelu(this, x) result(y)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
-
-        y = max(0.0, x) + this%alpha * min(0.0, x)
-    end function activ_prelu
-    
-    function activ_d_prelu(this, x) result(dy)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
-        
-        
-        dy = sign(one_dp, x) + (one_dp - sign(one_dp, x)) * this%alpha
-    end function activ_d_prelu
-
-    
-    subroutine sub_softmax(x, result)
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: result
-
-        real(dp), dimension(size(x,1), size(x,2)) :: z
-        real(dp), dimension(size(x,1)) :: exp_sum
-        integer :: i
-        
-        !TODO implement more efficient
-        
-        do i = 1, size(x, 1)
-            z(i, :) = x(i, :) - maxval(x(i, :))
-        end do
-
-        exp_sum = sum(exp(z), dim=2)
-
-        do i = 1, size(x, 1)
-            result(i, :) = exp(z(i, :)) / exp_sum(i)
-        end do
-        
-    end subroutine sub_softmax
-    
-    function activ_softmax(this, x) result(y)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
-        
-        call sub_softmax(x,y)
-        
-    end function activ_softmax
-    
     
 
-    
-    function activ_d_softmax(this, x) result(dy)
-        class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
-
-        call d_softmax(x,dy)
-        
-    end function activ_d_softmax
-    
-    
-    subroutine d_softmax(x, result)
-        real(dp), intent(in) :: x(:,:)
-        real(dp), intent(out) :: result(:,:)
-        integer :: m, d
-        real(dp), dimension(:,:), allocatable :: a
-        real(dp), dimension(:,:,:), allocatable :: tensor1, tensor2
-        integer :: i, j, k
-
-        ! Get dimensions of x
-        m = size(x, 1)
-        d = size(x, 2)
-
-        ! Allocate arrays
-        allocate(a(m, d), tensor1(m, d, d), tensor2(m, d, d))
-
-        ! Reshape input matrix if necessary
-        if (m == 1) then
-            a = reshape(x, (/1, d/))
-        else
-            a = x
-        end if
-        ! Compute softmax
-        call sub_softmax(a, a)
-
-        ! Compute tensor1
-        do i = 1, m
-            do j = 1, d
-                do k = 1, d
-                    tensor1(i, j, k) = a(i, j) * a(i, k)
-                end do
-            end do
-        end do
-
-        ! Compute tensor2
-        do i = 1, m
-            do j = 1, d
-                do k = 1, d
-                    if (j == k) then
-                        tensor2(i, j, k) = a(i, j) * (1.0d0 - a(i, j))
-                    else
-                        tensor2(i, j, k) = -a(i, j) * a(i, k)
-                    end if
-                end do
-            end do
-        end do
-
-        ! Compute result
-        do i = 1, m
-            do j = 1, d
-                do k = 1, d
-                    result(i, j) = tensor2(i, j, k) - tensor1(i, j, k)
-                end do
-            end do
-        end do
-
-    end subroutine d_softmax
-!active_softmax_sub
 
     !> not currently used
-    subroutine softmax(a, m, d)
-        real(dp), intent(inout) :: a(:,:)
-        integer, intent(in) :: m, d
-        real(dp) :: exp_sum, max_val
-        integer :: i, j
-
-        ! Find the maximum value in each row
-        do i = 1, m
-            max_val = maxval(a(i, 1:d))
-            ! Compute softmax for each element in the row
-            exp_sum = 0.0d0
-            do j = 1, d
-                a(i, j) = exp(a(i, j) - max_val)
-                exp_sum = exp_sum + a(i, j)
-            end do
-            ! Normalize the row to obtain probabilities
-            do j = 1, d
-                a(i, j) = a(i, j) / exp_sum
-            end do
-        end do
-
-    end subroutine softmax
+!    subroutine softmax(a, m, d)
+!        real(dp), intent(inout) :: a(:,:)
+!        integer, intent(in) :: m, d
+!        real(dp) :: exp_sum, max_val
+!        integer :: i, j
+!
+!         Find the maximum value in each row
+!        do i = 1, m
+!            max_val = maxval(a(i, 1:d))
+!             Compute softmax for each element in the row
+!            exp_sum = 0.0d0
+!            do j = 1, d
+!                a(i, j) = exp(a(i, j) - max_val)
+!                exp_sum = exp_sum + a(i, j)
+!            end do
+!             Normalize the row to obtain probabilities
+!            do j = 1, d
+!                a(i, j) = a(i, j) / exp_sum
+!            end do
+!        end do
+!
+!    end subroutine softmax
 
 
     subroutine activation_print(this)
@@ -315,15 +131,15 @@ contains
             case ('linear')
                 y = this%linear(x)
             case ('sigmoid')
-                y = this%sigmoid(x)
+                y = sigmoid(x)
             case ('tanh')
-                y = this%tanh(x)
+                y = tanh(x)
             case ('relu')
-                y = this%relu(x)
+                y = relu(x)
             case ('prelu')
-                y = this%prelu(x)
+                y = prelu(x, this%alpha)
             case ('softmax')
-                y = activ_softmax(this, x)
+                y = softmax(x)
             case default
                 print *, 'Unknown activation type: ', this%activation_type
                 stop
@@ -339,15 +155,15 @@ contains
             case ('linear')
                 dy = this%d_linear(x)
             case ('sigmoid')
-                dy = this%d_sigmoid(x)
+                dy = d_sigmoid(x)
             case ('tanh')
-                dy = this%d_tanh(x)
+                dy = d_tanh(x)
             case ('relu')
-                dy = this%d_relu(x)
+                dy = d_relu(x)
             case ('prelu')
-                dy = this%d_prelu(x)
+                dy = d_prelu(x, this%alpha)
             case ('softmax')
-                dy = this%d_softmax(x)
+                dy = d_softmax(x)
             case default
                 print *, 'Unknown activation type: ', this%activation_type
                 stop
