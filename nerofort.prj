@@ -80,8 +80,10 @@
             "filename":"src/Dense_mod.f08",
             "enabled":"1"
           },{
-            "filename":"src/LearningRateDecay_mod.f08",
-            "enabled":"1"
+            "filename":"src/Learning_rate_decay_mod.f08",
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Main.f08",
             "enabled":"1"

@@ -1,4 +1,4 @@
-module LearningRateDecay_mod
+module Learning_rate_decay_mod
     use Math_UTIL, only: dp
     implicit none
     private
@@ -56,4 +56,4 @@ contains
         res = lr_0 * exp(-k * real(t))
     end function expon_decay_dp
 
-end module LearningRateDecay_mod
+end module Learning_rate_decay_mod

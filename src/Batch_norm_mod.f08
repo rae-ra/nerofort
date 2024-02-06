@@ -115,14 +115,6 @@ contains
         end if
     end function forward
 
-! def backpropagation(self, dq):
-!        self.dgamma = np.sum(dq * self.zhat, axis=0)
-!        self.dbeta = np.sum(dq, axis=0)
-!        dzhat = dq * self.gamma
-!        dvar = np.sum(dzhat * self.zmu * (-.5) * (self.ivar**3), axis=0)
-!        dmu = np.sum(dzhat * (-self.ivar), axis=0)
-!        dz = dzhat * self.ivar + dvar * (2/self.m) * self.zmu + (1/self.m)*dmu
-!        return dz
 
     function backpropagation(this, dq) result(dz)
         class(Batch_norm), intent(inout) :: this
