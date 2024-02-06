@@ -1,13 +1,13 @@
-module optimizer_mod
+module Optimizer_mod
     use Math_UTIL, only: dp
     implicit none
     private
-    public :: Optimizer, optimizer_init, gd, sgd, adam, rmsprop
+    public :: Optimizer, optimizer_init, gd, sgd, adam, rmsprop, get_optimization
 
     type :: Optimizer
         character(len=5) :: optimizer_type
-        real(dp), allocatable :: momentum1(:), momentum2(:), epsilon(:)
-        real(dp), allocatable :: vdW(:), vdb(:), SdW(:), Sdb(:)
+        real(dp), allocatable :: momentum1(:,:), momentum2(:,:), epsilon(:,:)
+        real(dp), allocatable :: vdW(:,:), vdb(:,:), SdW(:,:), Sdb(:,:)
     end type optimizer
 
     interface optimizer_init
@@ -40,7 +40,7 @@ contains
         momentum1, momentum2, epsilon)
         type(optimizer), intent(out) :: self
         character(len=*), intent(in), optional :: optimizer_type
-        integer, intent(in) :: shape_W, shape_b
+        integer, intent(in) :: shape_W(2), shape_b(2)
         real(dp), intent(in), optional :: momentum1, momentum2, epsilon
 
         if (present(optimizer_type)) then
@@ -50,40 +50,40 @@ contains
         end if
 
         if (present(momentum1)) then
-            allocate(self%momentum1(shape_W))
+            allocate(self%momentum1(shape_W(1),shape_W(2)))
             self%momentum1 = momentum1
         else
-            allocate(self%momentum1(shape_W))
+            allocate(self%momentum1(shape_W(1),shape_W(2)))
             self%momentum1 = 0.9
         end if
 
         if (present(momentum2)) then
-            allocate(self%momentum2(shape_W))
+            allocate(self%momentum2(shape_W(1),shape_W(2)))
             self%momentum2 = momentum2
         else
-            allocate(self%momentum2(shape_W))
+            allocate(self%momentum2(shape_W(1),shape_W(2)))
             self%momentum2 = 0.999
         end if
 
         if (present(epsilon)) then
-            allocate(self%epsilon(shape_W))
+            allocate(self%epsilon(shape_W(1),shape_W(2)))
             self%epsilon = epsilon
         else
-            allocate(self%epsilon(shape_W))
+            allocate(self%epsilon(shape_W(1),shape_W(2)))
             self%epsilon = 1.0E-8
         end if
 
-        allocate(self%vdW(shape_W))
-        allocate(self%vdb(shape_b))
-        allocate(self%SdW(shape_W))
-        allocate(self%Sdb(shape_b))
+        allocate(self%vdW(shape_W(1),shape_W(2)))
+        allocate(self%vdb(shape_b(1),shape_b(2)))
+        allocate(self%SdW(shape_W(1),shape_W(2)))
+        allocate(self%Sdb(shape_b(1),shape_b(2)))
     end subroutine optimizer_init_dp
 
     subroutine gd_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
-        real(dp), dimension(:), intent(in) :: dW, db
+        real(dp), dimension(:,:), intent(in) :: dW, db
         integer, intent(in) :: k
-        real(dp), dimension(:), intent(out) :: result_dW, result_db
+        real(dp), dimension(:,:), intent(out) :: result_dW, result_db
 
         result_dW = dW
         result_db = db
@@ -91,9 +91,9 @@ contains
 
     subroutine sgd_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
-        real(dp), dimension(:), intent(in) :: dW, db
+        real(dp), dimension(:,:), intent(in) :: dW, db
         integer, intent(in) :: k
-        real(dp), dimension(:), intent(out) :: result_dW, result_db
+        real(dp), dimension(:,:), intent(out) :: result_dW, result_db
 
         ! Update vdW and vdb
         self%vdW = self%momentum1 * self%vdW + (1.0 - self%momentum1) * dW
@@ -106,11 +106,11 @@ contains
 
     subroutine rmsprop_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
-        real(dp), dimension(:), intent(in) :: dW, db
+        real(dp), dimension(:,:), intent(in) :: dW, db
         integer, intent(in) :: k
-        real(dp), dimension(size(dW)) :: den_W
-        real(dp), dimension(size(db)) :: den_b
-        real(dp), dimension(:), intent(out) :: result_dW, result_db
+        real(dp), dimension(size(dW,1),size(dW,2)) :: den_W
+        real(dp), dimension(size(db,1),size(db,2)) :: den_b
+        real(dp), dimension(:,:), intent(out) :: result_dW, result_db
 
         ! Update SdW and Sdb
         self%SdW = self%momentum2 * self%SdW + (1.0 - self%momentum2) * (dW**2)
@@ -128,11 +128,11 @@ contains
 
     subroutine adam_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout)        :: self
-        real(dp), dimension(:), intent(in)     :: dW, db
+        real(dp), dimension(:,:), intent(in)     :: dW, db
         integer, intent(in)                   :: k
-        real(dp), dimension(size(self%momentum1)) :: vdW_h, vdb_h, SdW_h, &
-            Sdb_h, den_W, den_b
-        real(dp), dimension(:), intent(out) :: result_dW, result_db
+        real(dp), dimension(size(self%momentum1,1),size(self%momentum1,2)) :: &
+            vdW_h, vdb_h, SdW_h, Sdb_h, den_W, den_b
+        real(dp), dimension(:,:), intent(out) :: result_dW, result_db
 
         ! Update vdW and vdb
         self%vdW = self%momentum1 * self%vdW + (1.0 - self%momentum1) * dW
@@ -168,9 +168,9 @@ contains
 
     subroutine get_optimization_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
-        real(dp), dimension(:), intent(in) :: dW, db
+        real(dp), dimension(:,:), intent(in) :: dW, db
         integer, intent(in) :: k
-        real(dp), dimension(:), intent(out) :: result_dW, result_db
+        real(dp), dimension(:,:), intent(out) :: result_dW, result_db
 
         select case (self%optimizer_type)
 
@@ -189,4 +189,4 @@ contains
         return
     end subroutine get_optimization_dp
 
-end module optimizer_mod
+end module Optimizer_mod

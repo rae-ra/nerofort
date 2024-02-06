@@ -95,6 +95,7 @@ contains
         integer, intent(in) :: n
         integer, dimension(:), intent(out) :: arr
         integer :: i, j, temp
+        real(dp) :: r
 
 
         ! Initialize array with consecutive integers
@@ -102,7 +103,8 @@ contains
 
         ! Perform Fisher-Yates shuffle
         do i = n, 2, -1
-            j = int(i * rand(0))
+            call random_number(r)
+            j = int(i * r)
             temp = arr(i)
             arr(i) = arr(j)
             arr(j) = temp

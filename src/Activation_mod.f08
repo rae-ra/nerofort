@@ -3,13 +3,12 @@ module Activation_mod
     implicit none
     private
     public :: create_activation
-    
-    real(dp) :: one_dp = 1.0
-    
+
+
     real(dp), pointer :: cache_x(:,:)
-    
-    
-    
+
+
+
     !> alpha: slope parameter
     type, public :: Activation
         character(len=10) :: activation_type
@@ -24,13 +23,13 @@ module Activation_mod
         procedure :: backpropagation => backpropagation
         procedure :: set_alpha => set_alpha
     end type Activation
-    
-    
+
+
     interface Activation
         module procedure init_0, init_alpha
     end interface Activation
-    
-    
+
+
 
 contains
 
@@ -40,39 +39,39 @@ contains
 
         activ_ptr = Activation(activation_type)
     end function create_activation
-    
+
     function init_0(activation_type) result(activ)
         character(len=10), intent(in) :: activation_type
 
         type(Activation) :: activ
 
         activ%activation_type = activation_type
-        
+
         call activ%set_alpha(real(0.2,dp))
-        
+
     end function init_0
-    
+
     function init_alpha(activation_type, alpha) result(activ)
         character(len=10), intent(in) :: activation_type
         real(dp) :: alpha
-        
+
         type(Activation) :: activ
 
         activ%activation_type = activation_type
-        
+
         call activ%set_alpha(alpha)
-        
+
     end function init_alpha
-    
-    
+
+
     subroutine set_alpha(this, alpha)
         class(Activation), intent(inout) :: this
         real(dp), intent(in) :: alpha
-        
+
         this%alpha = alpha
-        
+
     end subroutine set_alpha
-        
+
 
     function activ_linear(this, x) result(y)
         class(Activation), intent(in) :: this
@@ -89,7 +88,7 @@ contains
 
         dy = 1.0
     end function activ_d_linear
-    
+
 
 
     !> not currently used
@@ -174,9 +173,9 @@ contains
         class(Activation), intent(in) :: this
         real(dp), dimension(:,:), intent(in) :: X
         real(dp), dimension(size(X,1), size(X,2)) :: z
-        
+
         cache_x = X
-        
+
         z = this%get_activation(X)
     end function forward
 
@@ -186,7 +185,7 @@ contains
         real(dp), dimension(size(dz,1), size(dz,2)) :: dx
 
         real(dp), dimension(size(dz,1), size(dz,2)) :: f_prime
-        
+
         f_prime = this%get_d_activation(cache_x)
 
         dx = dz * f_prime
@@ -198,7 +197,7 @@ end module Activation_mod
 
 
 
-    
+
 
 
 !program test_activation_circle
@@ -214,8 +213,8 @@ end module Activation_mod
 !
 !    act = Activation('sigmoid') ! Use the constructor with activation type 'sigmoid'.
 !    call act%print              ! Call the type-bound subroutine for Activation.
-!    
-!    
+!
+!
 !
 !end program test_activation_circle
 !
