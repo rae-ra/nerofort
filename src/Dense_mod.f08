@@ -77,6 +77,7 @@ contains
         end if
     end subroutine init
 
+    !TEST needed
     subroutine initialize_parameters(this, hl, optimizer_type)
         class(Dense), intent(inout) :: this
         integer, intent(in) :: hl
@@ -95,6 +96,7 @@ contains
         call optimizer_init(this%optimizer, optimizer_type, shape_W, shape_b)
     end subroutine initialize_parameters
 
+    !TEST needed
     function forward(this, X) result(a)
         class(Dense), intent(inout) :: this
         real(dp), intent(in) :: X(:,:)
@@ -105,6 +107,7 @@ contains
         a = this%activation%forward(this%z)
     end function forward
 
+    !TEST needed
     function backpropagation(this, da) result(dX)
         class(Dense), intent(inout) :: this
         real(dp), intent(in) :: da(:,:)
@@ -119,6 +122,7 @@ contains
         dX = matmul(dr, transpose(this%W))
     end function backpropagation
 
+    !TEST needed
     subroutine update(this, lr, m, k)
         class(Dense), intent(inout) :: this
         real(dp), intent(in) :: lr

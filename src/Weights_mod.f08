@@ -30,6 +30,7 @@ contains
 
     end subroutine init
 
+    !TEST needed
     ! Function to select and call the appropriate initializer
     function get_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -59,6 +60,7 @@ contains
         end select
     end function get_initializer
 
+    !TEST needed
     ! Function to initialize with zeros
     function zeros_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -67,6 +69,7 @@ contains
         allocate(w(this%w_shape(1), this%w_shape(2)), source=0.0_dp)
     end function zeros_initializer
 
+    !TEST needed
     ! Function to initialize with ones
     function ones_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -75,6 +78,7 @@ contains
         allocate(w(this%w_shape(1), this%w_shape(2)), source=1.0_dp)
     end function ones_initializer
 
+    !TEST needed
     ! Function to initialize with random normal values
     function random_normal_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -84,6 +88,7 @@ contains
         call random_number(w)
     end function random_normal_initializer
 
+    !TEST needed
     ! Function to initialize with random uniform values
     function random_uniform_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -94,6 +99,7 @@ contains
         w = w - 0.5_dp
     end function random_uniform_initializer
 
+    !TEST needed
     ! Function to initialize with He initializer
     function he_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -105,6 +111,7 @@ contains
 
     end function he_initializer
 
+    !TEST needed
     ! Function to initialize with Xavier initializer
     function xavier_initializer(this) result(w)
         class(Weights), intent(in) :: this
@@ -114,6 +121,7 @@ contains
 
     end function xavier_initializer
 
+    !TEST needed
     ! Function to initialize with Glorot initializer
     function glorot_initializer(this) result(w)
         class(Weights), intent(in) :: this

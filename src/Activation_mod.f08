@@ -192,29 +192,3 @@ contains
     end function backpropagation
 
 end module Activation_mod
-
-
-
-
-
-
-
-
-!program test_activation_circle
-!    use class_Circle
-!    use Activation_mod
-!    implicit none
-!
-!    type(Circle) :: c           ! Declare a variable of type Circle.
-!    type(Activation) :: act     ! Declare a variable of type Activation.
-!
-!    c = Circle(1.5)             ! Use the implicit constructor, radius = 1.5.
-!    call c%print                ! Call the type-bound subroutine for Circle.
-!
-!    act = Activation('sigmoid') ! Use the constructor with activation type 'sigmoid'.
-!    call act%print              ! Call the type-bound subroutine for Activation.
-!
-!
-!
-!end program test_activation_circle
-!

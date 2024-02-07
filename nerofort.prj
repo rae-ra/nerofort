@@ -44,13 +44,18 @@
                     "enabled":"1"
                   }]
               }],
-            "Name":"-math",
+            "Name":"+math",
             "Files":[{
                 "filename":"src/math/clip_mod.f08",
                 "enabled":"1"
               },{
                 "filename":"src/math/data_types.f08",
                 "enabled":"1"
+              },{
+                "filename":"src/math/einsum_mod.f08",
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
               },{
                 "filename":"src/math/Math_util.f08",
                 "enabled":"1"
@@ -67,12 +72,15 @@
             "open":"1"
           },{
             "filename":"src/Batch_norm_mod.f08",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/circle.f08",
             "enabled":"1"
+          },{
+            "filename":"src/Conv2D_mod.f08",
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Cost_mod.f08",
             "enabled":"1"
@@ -81,22 +89,16 @@
             "enabled":"1"
           },{
             "filename":"src/Learning_rate_decay_mod.f08",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/Main.f08",
             "enabled":"1"
           },{
             "filename":"src/Optimizer_mod.f08",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/Padding2D_mod.f08",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
+            "enabled":"1"
           },{
             "filename":"src/Util.f08",
             "enabled":"1"

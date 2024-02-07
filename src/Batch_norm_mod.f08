@@ -49,6 +49,7 @@ contains
         end if
     end subroutine init
 
+
     subroutine initialize_parameters(this, d)
         class(Batch_norm), intent(inout) :: this
         integer, intent(in) :: d
@@ -63,6 +64,7 @@ contains
         this%running_var = 0.0_dp
     end subroutine initialize_parameters
 
+    !> function for broadcasting to (m) -> (m,d)!
     function spr_d(this, x)
     implicit none
 
@@ -74,6 +76,7 @@ contains
 
     end function spr_d
 
+    !> function for broadcasting to (d) -> (m,d)!
     function spr_m(this, x)
     implicit none
 
@@ -85,6 +88,7 @@ contains
 
     end function spr_m
 
+    !TEST needed
     function forward(this, z, mode) result(q)
         class(Batch_norm), intent(inout) :: this
         real(dp), intent(in) :: z(:,:)
@@ -115,7 +119,7 @@ contains
         end if
     end function forward
 
-
+    !TEST needed
     function backpropagation(this, dq) result(dz)
         class(Batch_norm), intent(inout) :: this
         real(dp), intent(in) :: dq(:,:)
@@ -157,6 +161,7 @@ contains
 
     end function backpropagation
 
+    !TEST needed
     subroutine update(this, lr, m, k)
         class(Batch_norm), intent(inout) :: this
         real(dp), intent(in) :: lr

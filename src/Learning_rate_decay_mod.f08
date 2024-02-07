@@ -22,7 +22,7 @@ module Learning_rate_decay_mod
 
 contains
 
-
+    !TEST needed
     elemental function constant_dp(t, lr_0) result(res)
         integer, intent(in) :: t
         real(dp), intent(in) :: lr_0
@@ -31,6 +31,7 @@ contains
         res = lr_0
     end function constant_dp
 
+    !TEST needed
     elemental function time_decay_dp(t, lr_0, k) result(res)
         integer, intent(in) :: t
         real(dp), intent(in) :: lr_0, k
@@ -39,6 +40,7 @@ contains
         res = lr_0 / (1.0 + k * real(t))
     end function time_decay_dp
 
+    !TEST needed
     elemental function step_decay_dp( t, lr_0, F, D) result(res)
         integer, intent(in) :: t, D
         real(dp), intent(in) :: lr_0, F
@@ -48,6 +50,7 @@ contains
         res = lr_0 * mult
     end function step_decay_dp
 
+    !TEST needed
     elemental function expon_decay_dp( t, lr_0, k) result(res)
         integer, intent(in) :: t
         real(dp), intent(in) :: lr_0, k

@@ -11,6 +11,7 @@ module Math_util
     use relu_mod
     use d_relu_mod
     use utility_mod
+    use einsum_mod
     public :: softmax, d_softmax
     public :: dp, qp, sp
     public :: clip
@@ -18,5 +19,6 @@ module Math_util
     public :: sigmoid, d_sigmoid
     public :: prelu, d_prelu, relu, d_relu
     public :: unique_str, mean, std_dev, rand_perm
+    public :: einsum
 
 end module Math_util

@@ -3,9 +3,10 @@ module Padding2D_mod
     implicit none
 
     private
-    public :: Padding_init, Padding_get_dimensions, Padding_forward, Padding_backpropagation
+    public :: Padding_init, Padding_get_dimensions, Padding_forward, &
+        Padding_backpropagation
 
-    type Padding2D
+    type, public :: Padding2D
         character(len=:), allocatable :: ptype
         integer :: pt, pb, pl, pr
         integer :: m, Nc, Nh, Nw
@@ -14,14 +15,18 @@ module Padding2D_mod
         real, allocatable :: zeros_t(:,:,:,:), zeros_b(:,:,:,:)
     end type Padding2D
 
-    interface Padding_forward
-        module procedure :: Padding_forward_3, Padding_forward_4
-    end interface Padding_forward
+    interface pad_get_dim
+        module procedure :: Padding_get_dimensions
+    end interface pad_get_dim
 
-    interface Padding_backpropagation
+    interface pad_forward
+        module procedure :: Padding_forward_3, Padding_forward_4
+    end interface pad_forward
+
+    interface pad_backpropagation
         module procedure :: Padding_backpropagation_3, &
             Padding_backpropagation_4
-    end interface Padding_backpropagation
+    end interface pad_backpropagation
 
 
     contains
@@ -37,6 +42,7 @@ module Padding2D_mod
         end if
     end subroutine Padding_init
 
+    !TEST needed
     subroutine Padding_get_dimensions(this, input_shape, kernel_size, s)
         class(Padding2D), intent(inout) :: this
         integer, intent(in) :: input_shape(:), kernel_size(2), s(2)
@@ -86,6 +92,7 @@ module Padding2D_mod
         end if
     end subroutine Padding_get_dimensions
 
+    !TEST needed
     subroutine Padding_forward_4(this, X, kernel_size, s, Xp)
         class(Padding2D), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
@@ -121,6 +128,7 @@ module Padding2D_mod
 
     end subroutine Padding_forward_4
 
+    !TEST needed
     subroutine Padding_forward_3(this, X, kernel_size, s, Xp)
         class(Padding2D), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:)
@@ -156,6 +164,7 @@ module Padding2D_mod
 
     end subroutine Padding_forward_3
 
+    !TEST needed
     function Padding_backpropagation_4(this, dXp) result (dX)
         class(Padding2D), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:,:)
@@ -171,6 +180,7 @@ module Padding2D_mod
 
     end function Padding_backpropagation_4
 
+    !TEST needed
     function Padding_backpropagation_3(this, dXp) result (dX)
         class(Padding2D), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:)
@@ -186,6 +196,7 @@ module Padding2D_mod
 
     end function Padding_backpropagation_3
 
+    !TEST needed
     subroutine zeros_array(output_shape, shape_arr, zeros_arr)
         integer, intent(in) :: shape_arr(:)
         integer, intent(out) :: output_shape(:)

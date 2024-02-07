@@ -36,6 +36,7 @@ module Optimizer_mod
 
 contains
 
+
     subroutine optimizer_init_dp(self, optimizer_type, shape_W, shape_b, &
         momentum1, momentum2, epsilon)
         type(optimizer), intent(out) :: self
@@ -79,6 +80,8 @@ contains
         allocate(self%Sdb(shape_b(1),shape_b(2)))
     end subroutine optimizer_init_dp
 
+
+    !TEST needed
     subroutine gd_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
         real(dp), dimension(:,:), intent(in) :: dW, db
@@ -89,6 +92,8 @@ contains
         result_db = db
     end subroutine gd_dp
 
+
+    !TEST needed
     subroutine sgd_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
         real(dp), dimension(:,:), intent(in) :: dW, db
@@ -104,6 +109,7 @@ contains
         result_db = self%vdb
     end subroutine sgd_dp
 
+    !TEST needed
     subroutine rmsprop_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
         real(dp), dimension(:,:), intent(in) :: dW, db
@@ -126,6 +132,8 @@ contains
 
     end subroutine rmsprop_dp
 
+
+    !TEST needed
     subroutine adam_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout)        :: self
         real(dp), dimension(:,:), intent(in)     :: dW, db
@@ -166,6 +174,8 @@ contains
         return
     end subroutine adam_dp
 
+
+    !TEST needed
     subroutine get_optimization_dp(self, dW, db, k, result_dW, result_db)
         type(optimizer), intent(inout) :: self
         real(dp), dimension(:,:), intent(in) :: dW, db

@@ -1,9 +1,9 @@
 module Cost_mod
     use Math_Util, only: dp, clip
     implicit none
-    
+
     public :: clip
-        
+
 
     type :: Cost
         private
@@ -19,7 +19,7 @@ module Cost_mod
     end type Cost
 
     contains
-    
+
 
     subroutine Cost_init(this, cost_type)
         class(Cost), intent(inout) :: this
@@ -30,41 +30,43 @@ module Cost_mod
         else
           this%cost_type = 'mse'
         end if
-        
+
         if (this%cost_type /= 'mse' .and. this%cost_type /= 'cross-entropy') then
             error stop "Valid cost functions are only 'mse' and 'cross-entropy'"
         end if
 
     end subroutine Cost_init
 
+    !TEST needed
     real(dp) function Cost_mse(this, a, y)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
-        
+
         Cost_mse = 0.5d0 * sum((norm2(a - y, dim=2))**2)
 
     end function Cost_mse
 
+    !TEST needed
     function Cost_d_mse(this, a, y) result(part_deriv)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
-        
+
         real(dp), dimension(size(a,1), size(a,2)) :: part_deriv
-        
+
         part_deriv = a - y
 
     end function Cost_d_mse
-    
-    
 
+
+    !TEST needed
     real(dp) function Cost_cross_entropy(this, a, y, epsil)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
         real(dp), intent(in), optional :: epsil
-        
+
         real(dp), dimension(size(a,1), size(a,2)) :: clip_a
         real(dp) :: eps
-        
+
         if (present(epsil)) then
           eps = epsil
         else
@@ -75,13 +77,14 @@ module Cost_mod
 
     end function Cost_cross_entropy
 
+    !TEST needed
     function Cost_d_cross_entropy(this, a, y, epsi) result(part_deriv)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
         real(dp), intent(in), optional :: epsi
-        
+
         real(dp), dimension(size(a,1), size(a,2)) :: part_deriv
-        
+
         real(dp), dimension(size(a,1), size(a,2)) :: clip_a
         real(dp) :: eps
         if (present(epsi)) then
@@ -94,10 +97,11 @@ module Cost_mod
 
     end function Cost_d_cross_entropy
 
+    !TEST needed
     real(dp) function Cost_get_cost(this, a, y)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
-        
+
         select case (this%cost_type)
         case ('mse')
           Cost_get_cost = Cost_mse(this, a, y)
@@ -109,11 +113,12 @@ module Cost_mod
 
     end function Cost_get_cost
 
+    !TEST needed
     function Cost_get_d_cost(this, a, y) result(part_deriv)
         class(Cost), intent(in) :: this
         real(dp), dimension(:, :), intent(in) :: a, y
         real(dp), dimension(size(a,1), size(a,2)) :: part_deriv
-        
+
         select case (this%cost_type)
         case ('mse')
           part_deriv = Cost_d_mse(this, a, y)
