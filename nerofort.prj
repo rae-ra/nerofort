@@ -93,6 +93,11 @@
             "panel":1,
             "open":"1"
           },{
+            "filename":"src/Padding2D_mod.f08",
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
+          },{
             "filename":"src/Util.f08",
             "enabled":"1"
           },{
@@ -104,7 +109,7 @@
           }]
       },{
         "Folders":[],
-        "Name":"+test",
+        "Name":"-test",
         "Files":[{
             "filename":"test/Activation_test.f08",
             "enabled":"1"
