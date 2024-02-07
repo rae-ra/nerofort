@@ -91,7 +91,7 @@ module einsum_mod
                                             res(q,r,s,t) = res(q,r,s,t) + &
                                                 Ker(posK(1),posK(2),posK(3), &
                                                 posK(4)) * Ma(posM(1),posM(2), &
-                                                 posM(3),posM(4),l,m,n,p)
+                                                 posM(3),posM(4),l,m)
                                         enddo
                                     enddo
                                 enddo

@@ -58,7 +58,9 @@
                 "open":"1"
               },{
                 "filename":"src/math/Math_util.f08",
-                "enabled":"1"
+                "enabled":"1",
+                "panel":1,
+                "open":"1"
               },{
                 "filename":"src/math/utility_mod.f08",
                 "enabled":"1"
@@ -98,7 +100,9 @@
             "enabled":"1"
           },{
             "filename":"src/Padding2D_mod.f08",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Util.f08",
             "enabled":"1"

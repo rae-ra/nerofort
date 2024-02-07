@@ -5,22 +5,29 @@ module Activation_mod
     public :: create_activation
 
 
-    real(dp), pointer :: cache_x(:,:)
 
 
+    !TODO re-add support for softmax
 
     !> alpha: slope parameter
     type, public :: Activation
         character(len=10) :: activation_type
         real(dp) :: alpha = 0.2
+        real(dp), pointer :: cache_x
+        real(dp), pointer :: cache_x_1 (:)
+        real(dp), pointer :: cache_x_2 (:,:)
+        real(dp), pointer :: cache_x_3 (:,:,:)
+        real(dp), pointer :: cache_x_4 (:,:,:,:)
     contains
         procedure :: linear => activ_linear
         procedure :: d_linear => activ_d_linear
         procedure :: print => activation_print
         procedure :: get_activation => get_activation
         procedure :: get_d_activation => get_d_activation
-        procedure :: forward => forward
-        procedure :: backpropagation => backpropagation
+        procedure :: forward => gen_forward_4, gen_forward_3, gen_forward_2, &
+            gen_forward_1
+        procedure :: backpropagation => gen_back_4, gen_back_3, gen_back_2, &
+            gen_back_1
         procedure :: set_alpha => set_alpha
     end type Activation
 
@@ -73,18 +80,18 @@ contains
     end subroutine set_alpha
 
 
-    function activ_linear(this, x) result(y)
+    pure function activ_linear(this, x) result(y)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
+        real(dp), intent(in) :: x
+        real(dp) :: y
 
         y = x
     end function activ_linear
 
-    function activ_d_linear(this, x) result(dy)
+    pure function activ_d_linear(this, x) result(dy)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
+        real(dp), intent(in) :: x
+        real(dp) :: dy
 
         dy = 1.0
     end function activ_d_linear
@@ -121,10 +128,10 @@ contains
         print *, 'Activation Type: ', this%activation_type
     end subroutine activation_print
 
-    function get_activation(this, x) result(y)
+    pure function get_activation(this, x) result(y)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: y
+        real(dp), intent(in) :: x
+        real(dp) :: y
 
         select case (this%activation_type)
             case ('linear')
@@ -137,18 +144,16 @@ contains
                 y = relu(x)
             case ('prelu')
                 y = prelu(x, this%alpha)
-            case ('softmax')
-                y = softmax(x)
-            case default
-                print *, 'Unknown activation type: ', this%activation_type
-                stop
+            !case ('softmax')
+            !    y = softmax(x)
+
         end select
     end function get_activation
 
-    function get_d_activation(this, x) result(dy)
+    elemental function get_d_activation(this, x) result(dy)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: x
-        real(dp), dimension(size(x,1), size(x,2)) :: dy
+        real(dp), intent(in) :: x
+        real(dp) :: dy
 
         select case (this%activation_type)
             case ('linear')
@@ -161,34 +166,112 @@ contains
                 dy = d_relu(x)
             case ('prelu')
                 dy = d_prelu(x, this%alpha)
-            case ('softmax')
-                dy = d_softmax(x)
-            case default
-                print *, 'Unknown activation type: ', this%activation_type
-                stop
+            !case ('softmax')
+            !    dy = d_softmax(x)
+
         end select
     end function get_d_activation
 
-    function forward(this, X) result(z)
+    function gen_forward_4(this,X) result(z)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: X
-        real(dp), dimension(size(X,1), size(X,2)) :: z
+        real(dp), intent(in) :: X(:,:,:,:)
+        real(dp), allocatable :: z(:,:,:,:)
 
-        cache_x = X
+        this%cache_x_4 = X
+
+        z = pure_forward(this, X)
+    end function gen_forward_4
+
+
+    function gen_back_4(this, dz) result(dx)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: dz (:,:,:,:)
+        real(dp), allocatable :: dx (:,:,:,:)
+
+        dx = pure_backpropagation(this,dz, this%cache_x_4)
+    end function gen_back_4
+
+
+    function gen_forward_3(this,X) result(z)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: X(:,:,:)
+        real(dp), allocatable :: z(:,:,:)
+
+        this%cache_x_3 = X
+
+        z = pure_forward(this, X)
+    end function gen_forward_3
+
+
+    function gen_back_3(this, dz) result(dx)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: dz (:,:,:)
+        real(dp), allocatable :: dx (:,:,:)
+
+        dx = pure_backpropagation(this,dz, this%cache_x_3)
+    end function gen_back_3
+
+
+    function gen_forward_2(this,X) result(z)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: X(:,:)
+        real(dp), allocatable :: z(:,:)
+
+        this%cache_x_2 = X
+
+        z = pure_forward(this, X)
+    end function gen_forward_2
+
+
+    function gen_back_2(this, dz) result(dx)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: dz (:,:)
+        real(dp), allocatable :: dx (:,:)
+
+        dx = pure_backpropagation(this, dz, this%cache_x_2)
+    end function gen_back_2
+
+
+    function gen_forward_1(this,X) result(z)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: X(:)
+        real(dp), allocatable :: z(:)
+
+        this%cache_x_1 = X
+
+        z = pure_forward(this, X)
+    end function gen_forward_1
+
+
+    function gen_back_1(this, dz) result(dx)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: dz (:)
+        real(dp), allocatable :: dx (:)
+
+        dx = pure_backpropagation(this, dz, this%cache_x_1)
+    end function gen_back_1
+
+
+    elemental function pure_forward(this, X) result(z)
+        class(Activation), intent(in) :: this
+        real(dp), intent(in) :: X
+        real(dp) :: z
 
         z = this%get_activation(X)
-    end function forward
+    end function pure_forward
 
-    function backpropagation(this, dz) result(dx)
+
+    elemental function pure_backpropagation(this, dz, cache_x) result(dx)
         class(Activation), intent(in) :: this
-        real(dp), dimension(:,:), intent(in) :: dz
-        real(dp), dimension(size(dz,1), size(dz,2)) :: dx
+        real(dp), intent(in) :: dz
+        real(dp), intent(in) :: cache_x
+        real(dp) :: dx
 
-        real(dp), dimension(size(dz,1), size(dz,2)) :: f_prime
+        real(dp) :: f_prime
 
         f_prime = this%get_d_activation(cache_x)
 
         dx = dz * f_prime
-    end function backpropagation
+    end function pure_backpropagation
 
 end module Activation_mod

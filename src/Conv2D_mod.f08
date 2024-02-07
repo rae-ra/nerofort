@@ -1,9 +1,10 @@
 module Conv2D_mod
-    use Padding2D_mod, only: Padding2D, Padding_init, Padding_get_dimensions
+    use Padding2D_mod
     use Activation_mod, only: Activation
     use Weights_mod, only: Weights
     use Optimizer_mod, only: Optimizer, optimizer_init
     use Math_UTIL, only: dp, einsum
+    use str_mod
     implicit none
 
     type :: Conv2D
@@ -24,8 +25,8 @@ module Conv2D_mod
         integer :: Oh, Ow
         integer :: output_shape(4)
         integer :: input_shape(4)
-        real(dp), allocatable :: K(:,:,:,:)
-        real(dp), allocatable :: b(:,:,:)
+        real(dp), allocatable :: K(:,:,:,:), X(:,:,:,:)
+        real(dp), allocatable :: b(:,:,:,:)
         type(Optimizer) :: optimizer
     end type Conv2D
 
@@ -227,19 +228,6 @@ module Conv2D_mod
 
     end subroutine prepare_subMatrix
 
-
-!       def convolve(self, X, K, s=(1,1), mode='front'):
-!
-!        F, Kc, Kh, Kw = K.shape
-!        subM = self.prepare_subMatrix(X, Kh, Kw, s)
-!
-!        if mode=='front':
-!            return np.einsum('fckl,mcijkl->mfij', K, subM)
-!        elif mode=='back':
-!            return np.einsum('fdkl,mcijkl->mdij', K, subM)
-!        elif mode=='param':
-!            return np.einsum('mfkl,mcijkl->fcij', K, subM)
-
     subroutine convolve( X, K, s, mode, Xd)
         real(dp), intent(in) :: X(:,:,:,:), K(:,:,:,:)
         integer, intent(in) :: s(2)
@@ -254,79 +242,74 @@ module Conv2D_mod
 
         select case (mode)
             case ("front")
-                einsum('mfkl,mcijkl->fcij', K, subM, Xd)
+                call einsum('mfkl,mcijkl->fcij', K, subM, Xd)
             case ("back")
-                einsum('mfkl,mcijkl->fcij', K, subM, Xd)
+                call einsum('mfkl,mcijkl->fcij', K, subM, Xd)
             case ("param")
-                einsum('mfkl,mcijkl->fcij', K, subM, Xd)
+                call einsum('mfkl,mcijkl->fcij', K, subM, Xd)
         end select
 
 
     end subroutine convolve
 
-    subroutine dZ_D_dX(this, dZ)
+
+    subroutine dZ_D_dX(this, dZ, Nh, Nw, dX)
         class(Conv2D), intent(inout) :: this
         real(dp), intent(in) :: dZ(:,:,:,:)
-        integer :: i, j, k, l, m, nn, N, Nh, Nw, Oh, Ow, i1, i2, j1, j2, k1, k2
-        real(dp), allocatable :: dXd(:,:,:,:)
-        integer :: kernel_sh, kernel_sw, p1, p2, p3, p4, i_output, j_output
+        integer, intent(in) :: Nh, Nw
+        real(dp), allocatable, intent(out) :: dX(:,:,:,:)
 
-        m = size(dZ,1)
-        nn = size(dZ,2)
-        N = size(dZ,3)
-        Nh = size(dZ,4)
-        Nw = size(dZ,5)
-        Oh = this%Oh
-        Ow = this%Ow
+        integer :: Hd, Wd, ph, pw
+        type(Padding2D) :: pad_back
+        real(dp), allocatable :: dXp(:,:,:,:), dZ_Dp(:,:,:,:)
+        type(str) :: mode
 
-        kernel_sh = this%Kh
-        kernel_sw = this%Kw
+        mode%chars = "back"
 
-        allocate(this%dK(N,Oh,Ow,this%Kh,this%Kw))
+        Hd = size(dZ,3)
+        Wd = size(dZ,4)
 
-        do i = 1, N
-            do i_output = 1, Oh
-                do j_output = 1, Ow
-                    do k1 = 1, kernel_sh
-                        do k2 = 1, kernel_sw
-                            do j = 1, nn
-                                do l = 1, kernel_sh
-                                    do k = 1, kernel_sw
-                                        p1 = (i_output - 1) * this%sh + k1
-                                        p2 = (j_output - 1) * this%sw + k2
-                                        p3 = i
-                                        p4 = k1
-                                        if (p3 == i .and. p4 == k1) then
-                                            this%dK(i,i_output,j_output,k1,k2) = &
-                                                this%dK(i,i_output,j_output,k1,k2) + &
-                                                dZ(p1,p2,p3,p4) * this%X(p3,i_output,&
-                                                    j_output,l,k)
-                                        end if
-                                    end do
-                                end do
-                            end do
-                        end do
-                    end do
-                end do
-            end do
-        end do
+        ph = Nh - Hd + this%Kh - 1
+        pw = Nw - Wd + this%Kw - 1
+
+
+        call Padding_init(pad_back, p = "int" , ph = ph, pw = pw)
+
+        call pad_forward(pad_back, dZ, this%kernel_size, this%s, dZ_Dp)
+
+        ! convolve dZ_Dp with  K rotated by 180
+
+        call convolve(X = dZ_Dp, K = cshift(cshift(this%K, shift = &
+            -1, dim = 3), shift = -1, dim = 4), s = (/1,1/),&
+                mode = mode%chars, XD = dXp)
+
+        dx = pad_backward(pad_back, dXp)
 
     end subroutine dZ_D_dX
 
-    subroutine forward(this, X)
+    subroutine forward(this, X, a)
         class(Conv2D), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
+        real(dp), allocatable :: Xp(:,:,:,:), Z(:,:,:,:)
+        real(dp), intent(out) :: a(:,:,:,:)
         integer :: i
+        type(str) :: mode
 
-        call this%convolve(X)
+        mode%chars = "front"
 
-        if (this%use_bias) then
-            do i = 1, this%F
-                this%X(:,:,,:) = this%X(:,:,,:) + this%b(i,:,:)
-            end do
-        end if
+        this%X = X
 
-        call this%activation%activate(this%X)
+        call pad_forward(this%padding, X, this%kernel_size, this%s, Xp)
+
+        call convolve(Xp, this%K, this%s, mode=mode%chars, XD = Z)
+
+
+        Z = Z + this%b
+
+
+
+        a = this%activation%forward(Z)
+
     end subroutine forward
 
     subroutine backpropagation(this, X, dZ)
@@ -335,7 +318,7 @@ module Conv2D_mod
         real(dp), intent(in) :: dZ(:,:,:,:)
         integer :: i
 
-        call this%dZ_D_dX(dZ)
+        call dZ_D_dX(this, dZ)
 
         if (this%use_bias) then
             do i = 1, this%F

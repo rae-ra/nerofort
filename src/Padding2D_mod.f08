@@ -3,12 +3,12 @@ module Padding2D_mod
     implicit none
 
     private
-    public :: Padding_init, Padding_get_dimensions, Padding_forward, &
-        Padding_backpropagation
+    public :: Padding_init, pad_get_dim, pad_forward, &
+        pad_backward
 
     type, public :: Padding2D
         character(len=:), allocatable :: ptype
-        integer :: pt, pb, pl, pr
+        integer :: pt, pb, pl, pr, pint, ph, pw
         integer :: m, Nc, Nh, Nw
         integer :: output_shape(4)
         real, allocatable :: zeros_r(:,:,:,:), zeros_l(:,:,:,:)
@@ -23,28 +23,45 @@ module Padding2D_mod
         module procedure :: Padding_forward_3, Padding_forward_4
     end interface pad_forward
 
-    interface pad_backpropagation
+    interface pad_backward
         module procedure :: Padding_backpropagation_3, &
             Padding_backpropagation_4
-    end interface pad_backpropagation
+    end interface pad_backward
 
 
     contains
 
-    subroutine Padding_init(this, p)
+    subroutine Padding_init(this, p, pint, ph, pw)
         class(Padding2D), intent(inout) :: this
         character(len=*), intent(in), optional :: p
+        integer, intent(in), optional :: pint, ph, pw
 
         if (present(p)) then
             this%ptype = p
         else
             this%ptype = "valid"
         end if
+
+        if (present(pint)) then
+            this%pint = pint
+        else
+            this%pint = -1
+        end if
+
+        if (present(ph) .and. present(pw)) then
+            this%pw = pw
+            this%ph = ph
+        else
+            this%pw = -1
+            this%ph = -1
+        end if
+
+
     end subroutine Padding_init
 
     !TEST needed
     subroutine Padding_get_dimensions(this, input_shape, kernel_size, s)
-        class(Padding2D), intent(inout) :: this
+        type(Padding2D), intent(inout) :: this
         integer, intent(in) :: input_shape(:), kernel_size(2), s(2)
         integer :: Kh, Kw, sh, sw
 
@@ -76,6 +93,16 @@ module Padding2D_mod
                 this%pb = this%pt + mod(this%pt + 1, 2)
                 this%pl = (sw - 1) * this%Nw + Kw - sw
                 this%pr = this%pl + mod(this%pl + 1, 2)
+            case('int')
+                this%pt = this%pint
+                this%pb = this%pint
+                this%pl = this%pint
+                this%pr = this%pint
+            case('tuple')
+                this%pt = this%ph /2
+                this%pb = (this%ph + 1) / 2
+                this%pl = this%pw / 2
+                this%pr =(this%pw + 1) / 2
             case default
                 this%pt = 0
                 this%pb = 0
@@ -94,7 +121,7 @@ module Padding2D_mod
 
     !TEST needed
     subroutine Padding_forward_4(this, X, kernel_size, s, Xp)
-        class(Padding2D), intent(inout) :: this
+        type(Padding2D), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
         integer, intent(in) :: kernel_size(2), s(2)
         real(dp), allocatable, intent(out) :: Xp(:,:,:,:)
@@ -130,7 +157,7 @@ module Padding2D_mod
 
     !TEST needed
     subroutine Padding_forward_3(this, X, kernel_size, s, Xp)
-        class(Padding2D), intent(inout) :: this
+        type(Padding2D), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:)
         integer, intent(in) :: kernel_size(2), s(2)
         real(dp), allocatable, intent(out) :: Xp(:,:,:)
@@ -166,7 +193,7 @@ module Padding2D_mod
 
     !TEST needed
     function Padding_backpropagation_4(this, dXp) result (dX)
-        class(Padding2D), intent(in) :: this
+        type(Padding2D), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:,:)
         real(dp), allocatable :: dX(:,:,:,:)
         integer :: m, Nc, Nh, Nw
@@ -182,7 +209,7 @@ module Padding2D_mod
 
     !TEST needed
     function Padding_backpropagation_3(this, dXp) result (dX)
-        class(Padding2D), intent(in) :: this
+        type(Padding2D), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:)
         real(dp), allocatable :: dX(:,:,:)
         integer :: m, Nc, Nh, Nw
