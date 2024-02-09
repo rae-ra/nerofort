@@ -2,7 +2,7 @@ module Optimizer_mod
     use Math_UTIL, only: dp
     implicit none
     private
-    public :: Optimizer, optimizer_init, gd, sgd, adam, rmsprop, get_optimization
+    public :: Optimizer, optimizer_init, get_optimization
 
     type :: Optimizer
         character(len=5) :: optimizer_type
@@ -224,7 +224,6 @@ contains
                 stop 'Invalid optimizer type'
         end select
 
-        return
     end subroutine get_optimization_dp
 
 end module Optimizer_mod
