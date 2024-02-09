@@ -19,14 +19,15 @@ module Conv2D_mod
         type(Activation) :: activation
         logical :: use_bias
         character(len=:), allocatable :: weight_init
-        character(len=:), allocatable :: kernel_regularizer
+        character(len=:), allocatable :: kern_reg_str
+        real(dp) :: kern_reg
         real(dp) :: seed
         integer :: Nc, Nh, Nw
         integer :: Oh, Ow
         integer :: output_shape(4)
         integer :: input_shape(4)
-        real(dp), allocatable :: K(:,:,:,:), X(:,:,:,:)
-        real(dp), allocatable :: b(:,:,:,:)
+        real(dp), allocatable :: K(:,:,:,:), X(:,:,:,:),  dK(:,:,:,:)
+        real(dp), allocatable :: b(:,:,:,:), db(:,:,:,:)
         type(Optimizer) :: optimizer
     end type Conv2D
 
@@ -34,7 +35,7 @@ module Conv2D_mod
 
     subroutine init_Conv2D(this, filters, kernel_size, s, &
         p, activation_type, use_bias, weight_init, &
-            kernel_regularizer, seed, input_shape)
+            kern_reg_str,kern_reg, seed, input_shape)
         class(Conv2D), intent(inout) :: this
         integer, intent(in) :: filters
         integer, intent(in) :: kernel_size(2)
@@ -43,7 +44,8 @@ module Conv2D_mod
         character(len=*), intent(in), optional :: activation_type
         logical, intent(in), optional :: use_bias
         character(len=*), intent(in), optional :: weight_init
-        character(len=*), intent(in), optional :: kernel_regularizer
+        character(len=*), intent(in), optional :: kern_reg_str
+        real(dp), intent(in), optional :: kern_reg
         real(dp), intent(in), optional :: seed
         integer, intent(in), optional :: input_shape(4)
 
@@ -72,10 +74,15 @@ module Conv2D_mod
         if (present(weight_init)) then
             this%weight_init = weight_init
         end if
-        if (present(kernel_regularizer)) then
-            this%kernel_regularizer = kernel_regularizer
+        if (present(kern_reg_str)) then
+            this%kern_reg_str = kern_reg_str
         else
-            this%kernel_regularizer = 'L2'
+            this%kern_reg_str = 'L2'
+        end if
+        if (present(kern_reg)) then
+            this%kern_reg = kern_reg
+        else
+            this%kern_reg = 0.01_dp
         end if
         if (present(seed)) then
             this%seed = seed
@@ -130,12 +137,12 @@ module Conv2D_mod
         character(len=*), intent(in) :: optimizer_type
         type(Weights) :: winit
 
-        integer :: shape_b(3)
+        integer :: shape_b(4)
         integer :: shape_W(4)
 
         ! init W
         call get_dimensions(this, input_shape)
-        shape_b = (/this%F, this%Oh, this%Ow/)
+        shape_b = (/this%F, this%Oh, this%Ow, 1/)
         shape_W = (/this%F, this%Nc, this%Kh, this%Kw/)
         call init(winit, shape_W,&
             this%weight_init)
@@ -144,7 +151,7 @@ module Conv2D_mod
         this%W = winit%get_initializer()
 
         ! init b
-        allocate(this%b(shape_b(1),shape_b(2),shape_b(3)))
+        allocate(this%b(shape_b(1),shape_b(2),shape_b(3),shape_b(4)))
         this%b = 0.0
 
         !init optimizer
@@ -230,15 +237,22 @@ module Conv2D_mod
 
     subroutine convolve( X, K, s, mode, Xd)
         real(dp), intent(in) :: X(:,:,:,:), K(:,:,:,:)
-        integer, intent(in) :: s(2)
-        character(len=:), allocatable, intent(in):: mode
+        integer, intent(in), optional :: s(2)
+        character(len=*), intent(in):: mode
         real(dp), allocatable, intent(out) :: Xd(:,:,:,:)
+        integer :: s_in(2)
         real(dp), allocatable :: subM(:,:,:,:,:,:)
         integer :: k_shape(4)
 
+        if(.not. present(s)) then
+            s_in = (/1, 1/)
+        else
+            s_in = s
+        end if
+
         k_shape = shape(K)
 
-        call prepare_subMatrix(X, k_shape(3), k_shape(4), s, subM)
+        call prepare_subMatrix(X, k_shape(3), k_shape(4), s_in, subM)
 
         select case (mode)
             case ("front")
@@ -249,6 +263,7 @@ module Conv2D_mod
                 call einsum('mfkl,mcijkl->fcij', K, subM, Xd)
         end select
 
+        deallocate(subM)
 
     end subroutine convolve
 
@@ -264,7 +279,6 @@ module Conv2D_mod
         real(dp), allocatable :: dXp(:,:,:,:), dZ_Dp(:,:,:,:)
         type(str) :: mode
 
-        mode%chars = "back"
 
         Hd = size(dZ,3)
         Wd = size(dZ,4)
@@ -281,9 +295,11 @@ module Conv2D_mod
 
         call convolve(X = dZ_Dp, K = cshift(cshift(this%K, shift = &
             -1, dim = 3), shift = -1, dim = 4), s = (/1,1/),&
-                mode = mode%chars, XD = dXp)
+                mode = "back", XD = dXp)
 
         dx = pad_backward(pad_back, dXp)
+
+        deallocate(dXp, dZ_Dp)
 
     end subroutine dZ_D_dX
 
@@ -293,67 +309,91 @@ module Conv2D_mod
         real(dp), allocatable :: Xp(:,:,:,:), Z(:,:,:,:)
         real(dp), intent(out) :: a(:,:,:,:)
         integer :: i
-        type(str) :: mode
-
-        mode%chars = "front"
 
         this%X = X
 
         call pad_forward(this%padding, X, this%kernel_size, this%s, Xp)
 
-        call convolve(Xp, this%K, this%s, mode=mode%chars, XD = Z)
-
+        call convolve(Xp, this%K, this%s, mode="front", XD = Z)
 
         Z = Z + this%b
 
-
-
         a = this%activation%forward(Z)
+
+        deallocate(Xp, Z)
 
     end subroutine forward
 
-    subroutine backpropagation(this, X, dZ)
+
+    subroutine backpropagation(this, da, dX)
         class(Conv2D), intent(inout) :: this
-        real(dp), intent(in) :: X(:,:,:,:)
-        real(dp), intent(in) :: dZ(:,:,:,:)
+        real(dp), intent(in) :: da(:,:,:,:)
+        real(dp), allocatable, intent(out) :: dX(:,:,:,:)
+        real(dp), allocatable :: Xp(:,:,:,:), dZ(:,:,:,:),&
+            dZ_D(:,:,:,:), dZ_Dp(:,:,:,:)
+        integer :: m, Nc, Nh, Nw
         integer :: i
+        integer :: Hd, Wd, ph, pw
+        type(Padding2D) :: pad_back
 
-        call dZ_D_dX(this, dZ)
+        call pad_forward(this%padding, this%X, this%kernel_size, this%s, Xp)
 
-        if (this%use_bias) then
-            do i = 1, this%F
-                this%db(i,:,:) = sum(dZ(i,:,:,:), dim=3)
-            end do
-        end if
+        m  = size(Xp,1)
+        Nc = size(Xp,2)
+        Nh = size(Xp,3)
+        Nw = size(Xp,4)
 
-        call this%activation%apply_derivative(this%X)
+        dZ = this%activation%backpropagation(da)
+
+        !Dilate
+
+        call dilate2D(this, dZ, this%s, dZ_D)
+        call dZ_D_dX(this,Dz_D, Nh, Nw, dX)
+
+        !Gradient dk
+
+        Hd = size(dZ_D,3)
+        Wd = size(dZ_D,4)
+        ph = Nh - Hd + this%Kh - 1
+        pw = Nw - Wd + this%Kw - 1
+
+        call Padding_init(pad_back, p = "int" , ph = ph, pw = pw)
+        call pad_forward(pad_back, dZ, this%kernel_size, this%s, dZ_Dp)
+        call convolve(Xp,Dz_Dp, mode = 'param', XD = this%dK)
+
+        !Gradient db
+
+        this%db(:,:,:,1) = sum(dZ,dim = 1)
+
+        deallocate(Xp, dZ, Dz_D, DZ_DP)
 
     end subroutine backpropagation
 
-    subroutine update(this)
+
+    subroutine update(this, lr, m, k)
         class(Conv2D), intent(inout) :: this
+        real(dp), intent(in) :: lr
+        integer, intent(in) :: m,k
         real(dp), allocatable :: dK1(:,:,:,:), db1(:,:,:)
 
-        call get_optimization(this%optimizer, this%dK, this%K)
-        call this%optimizer%update(this%db, this%b)
+        call get_optimization(this%optimizer, this%dK, this%db, k, dK1,db1)
 
-        deallocate(this%dK, this%db)
+        if (this%kern_reg_str =='l2' .or. this%kern_reg_str &
+            =='L2') then
+            dK1 = dK1 + this%kern_reg * this%K
+        elseif (this%kern_reg_str =='l1' .or. this%kern_reg_str &
+            =='L1') then
+            dK1 = dK1 + this%kern_reg * sign(1.0_dp, this%K)
+        end if
+
+        this%K = this%K - this%dK*(lr/m)
+
+        if (this%use_bias) then
+            this%b = this%b - this%db * (lr/m)
+        end if
+
+        deallocate(dK1, db1)
     end subroutine update
 
-    subroutine apply_gradients(this, dZ, lr)
-        class(Conv2D), intent(inout) :: this
-        real(dp), intent(in) :: dZ(:,:,:,:)
-        real(dp), intent(in) :: lr
-        integer :: i
-
-        this%dK = dZ
-
-        do i = 1, this%F
-            this%dK(i,:,:) = this%dK(i,:,:) * lr
-        end do
-
-        call this%update()
-
-    end subroutine apply_gradients
 
 end module Conv2D_mod

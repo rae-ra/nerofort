@@ -128,7 +128,7 @@ contains
         print *, 'Activation Type: ', this%activation_type
     end subroutine activation_print
 
-    pure function get_activation(this, x) result(y)
+    impure elemental function get_activation(this, x) result(y)
         class(Activation), intent(in) :: this
         real(dp), intent(in) :: x
         real(dp) :: y
@@ -144,8 +144,9 @@ contains
                 y = relu(x)
             case ('prelu')
                 y = prelu(x, this%alpha)
-            !case ('softmax')
-            !    y = softmax(x)
+            case ('softmax')
+            !this really needs testing
+                y = softmax(x)
 
         end select
     end function get_activation
@@ -167,10 +168,11 @@ contains
             case ('prelu')
                 dy = d_prelu(x, this%alpha)
             !case ('softmax')
-            !    dy = d_softmax(x)
+                !dy = d_softmax(x)
 
         end select
     end function get_d_activation
+
 
     function gen_forward_4(this,X) result(z)
         class(Activation), intent(in) :: this
@@ -187,6 +189,7 @@ contains
         class(Activation), intent(in) :: this
         real(dp), intent(in) :: dz (:,:,:,:)
         real(dp), allocatable :: dx (:,:,:,:)
+
 
         dx = pure_backpropagation(this,dz, this%cache_x_4)
     end function gen_back_4
@@ -252,7 +255,7 @@ contains
     end function gen_back_1
 
 
-    elemental function pure_forward(this, X) result(z)
+    impure elemental function pure_forward(this, X) result(z)
         class(Activation), intent(in) :: this
         real(dp), intent(in) :: X
         real(dp) :: z
@@ -261,7 +264,8 @@ contains
     end function pure_forward
 
 
-    elemental function pure_backpropagation(this, dz, cache_x) result(dx)
+    impure elemental function pure_backpropagation(this, dz, cache_x) &
+        result(dx)
         class(Activation), intent(in) :: this
         real(dp), intent(in) :: dz
         real(dp), intent(in) :: cache_x
