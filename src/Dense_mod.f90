@@ -16,13 +16,13 @@ module Dense_mod
         type(W_reg) :: w_reg
         integer :: seed
         integer :: input_dim
-        real(dp), allocatable :: W(:,:)
-        real(dp), allocatable :: b(:,:)
+        real(dp), allocatable :: W(:,:,:,:)
+        real(dp), allocatable :: b(:,:,:,:)
         type(Optimizer) :: optimizer
-        real(dp), allocatable :: X(:,:)
-        real(dp), allocatable :: z(:,:)
-        real(dp), allocatable :: dW(:,:)
-        real(dp), allocatable :: db(:,:)
+        real(dp), allocatable :: X(:,:,:,:)
+        real(dp), allocatable :: z(:,:,:,:)
+        real(dp), allocatable :: dW(:,:,:,:)
+        real(dp), allocatable :: db(:,:,:,:)
     contains
         procedure :: init
         procedure :: initialize_parameters
@@ -89,37 +89,39 @@ contains
 
         shape_W = [hl, this%neurons]
         shape_b = [this%neurons, 1]
-        call initializer%init(shape_W, this%weight_initializer_type)
-        this%W = initializer%get_initializer()
-        allocate(this%b(shape_b(1), shape_b(2)))
+        call initializer%w_init(shape_W, this%weight_initializer_type)
+        this%W(:,:,1,1) = initializer%get_initializer()
+        allocate(this%b(shape_b(1),shape_b(2),1,1))
         this%b = 0.0_dp
-        call optimizer_init(this%optimizer, optimizer_type, shape_W, shape_b)
+        call optimizer_init(this%optimizer, optimizer_type, shape(this%W), &
+            shape(this%b))
     end subroutine initialize_parameters
 
     !TEST needed
     function forward(this, X) result(a)
         class(Dense), intent(inout) :: this
-        real(dp), intent(in) :: X(:,:)
-        real(dp), allocatable :: a(:,:)
+        real(dp), intent(in) :: X(:,:,:,:)
+        real(dp), allocatable :: a(:,:,:,:)
 
         this%X = X
-        this%z = matmul(X, this%W) + transpose(this%b)
+        this%z(:,:,1,1) = &
+            matmul(X(:,:,1,1), this%W(:,:,1,1)) + transpose(this%b(:,:,1,1))
         a = this%activation%forward(this%z)
     end function forward
 
     !TEST needed
     function backpropagation(this, da) result(dX)
         class(Dense), intent(inout) :: this
-        real(dp), intent(in) :: da(:,:)
-        real(dp), allocatable :: dX(:,:)
-        real(dp), allocatable :: dz(:,:)
-        real(dp), allocatable :: dr(:,:)
+        real(dp), intent(in) :: da(:,:,:,:)
+        real(dp), allocatable :: dX(:,:,:,:)
+        real(dp), allocatable :: dz(:,:,:,:)
+        real(dp), allocatable :: dr(:,:,:,:)
 
         dz = this%activation%backpropagation(da)
         dr = dz
-        this%db = reshape(sum(dz, dim=1), [size(dr,2),1])
-        this%dW = matmul(transpose(this%X), dr)
-        dX = matmul(dr, transpose(this%W))
+        this%db(:,:,1,1) = reshape(sum(dz, dim=1), [size(dr,2),1])
+        this%dW(:,:,1,1) = matmul(transpose(this%X(:,:,1,1)), dr(:,:,1,1))
+        dX(:,:,1,1) = matmul(dr(:,:,1,1), transpose(this%W(:,:,1,1)))
     end function backpropagation
 
     !TEST needed
@@ -129,8 +131,8 @@ contains
         integer, intent(in) :: m
         integer, intent(in) :: k
 
-        real(dp), allocatable :: dW(:,:)
-        real(dp), allocatable :: db(:,:)
+        real(dp), allocatable :: dW(:,:,:,:)
+        real(dp), allocatable :: db(:,:,:,:)
 
         call get_optimization(this%optimizer, this%dW, this%db, k, dW, db)
         if (this%w_reg%str == 'L2') then

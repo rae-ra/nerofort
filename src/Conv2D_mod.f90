@@ -2,7 +2,7 @@ module Conv2D_mod
     use Padding2D_mod
     use Activation_mod, only: Activation
     use Weights_mod, only: Weights
-    use Optimizer_mod, only: Optimizer, optimizer_init
+    use Optimizer_mod
     use Math_UTIL, only: dp, einsum
     use str_mod
     implicit none
@@ -144,7 +144,7 @@ module Conv2D_mod
         call get_dimensions(this, input_shape)
         shape_b = (/this%F, this%Oh, this%Ow, 1/)
         shape_W = (/this%F, this%Nc, this%Kh, this%Kw/)
-        call init(winit, shape_W,&
+        call winit%w_init(shape_W,&
             this%weight_init)
 
 
@@ -155,7 +155,7 @@ module Conv2D_mod
         this%b = 0.0
 
         !init optimizer
-        call init_Optimizer(this%optimizer, optimizer_type, shape_W, shape_b)
+        call optimizer_init(this%optimizer, optimizer_type, shape_W, shape_b)
 
     end subroutine initialize_parameters
 
@@ -374,7 +374,7 @@ module Conv2D_mod
         class(Conv2D), intent(inout) :: this
         real(dp), intent(in) :: lr
         integer, intent(in) :: m,k
-        real(dp), allocatable :: dK1(:,:,:,:), db1(:,:,:)
+        real(dp), allocatable :: dK1(:,:,:,:), db1(:,:,:,:)
 
         call get_optimization(this%optimizer, this%dK, this%db, k, dK1,db1)
 

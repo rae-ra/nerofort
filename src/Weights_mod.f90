@@ -9,14 +9,14 @@ module Weights_mod
         character(len=:), allocatable :: initializer_type
         integer :: w_shape(2)
     contains
-        procedure, public :: init
+        procedure, public :: w_init
         procedure, public :: get_initializer
     end type Weights
 
 contains
 
     ! Constructor for Weights type
-    subroutine init(this, w_shape, initializer_type)
+    subroutine w_init(this, w_shape, initializer_type)
         class(Weights), intent(inout) :: this
         integer, intent(in) :: w_shape(2)
         character(len=*), intent(in), optional :: initializer_type
@@ -28,7 +28,7 @@ contains
             this%initializer_type = "he_normal"
         end if
 
-    end subroutine init
+    end subroutine w_init
 
     !TEST needed
     ! Function to select and call the appropriate initializer
