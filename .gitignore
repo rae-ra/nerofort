@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+
+*.DS_Store
+build/*
+*.prefs
+.classpath
+.cproject
+.project

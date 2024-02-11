@@ -159,21 +159,6 @@ contains
         dx = internal_backpropagation(this,dz, cache_x_4)
     end function gen_back_4
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     function internal_forward(this, X) result(z)
         class(Activation), intent(in) :: this
         real(dp), intent(in) :: X (:,:,:,:)

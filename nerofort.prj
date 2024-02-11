@@ -65,13 +65,17 @@
         "Name":"+src",
         "Files":[{
             "filename":"src/Activation_mod.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Batch_norm_mod.f90",
             "enabled":"1"
           },{
             "filename":"src/Conv2D_mod.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Cost_mod.f90",
             "enabled":"1"
@@ -89,7 +93,14 @@
             "enabled":"1"
           },{
             "filename":"src/Padding2D_mod.f90",
-            "enabled":"1"
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
+          },{
+            "filename":"src/Pooling2D_mod.f90",
+            "enabled":"1",
+            "panel":1,
+            "open":"1"
           },{
             "filename":"src/Util.f90",
             "enabled":"1"
