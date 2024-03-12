@@ -12,10 +12,10 @@ module Pooling2D_mod
         integer :: sh, sw
         character(len=6) :: pool_type
         contains
-                procedure maxpool_backprop => maxpool_backprop
-                procedure backprop => backprop
-                procedure forward => forward
-                procedure dZ_dZp => dZ_dZp
+                procedure :: maxpool_backprop => maxpool_backprop
+                procedure :: backprop => backprop
+                procedure :: forward => forward
+                procedure :: dZ_dZp => dZ_dZp
     end type Pooling2D
 
 contains

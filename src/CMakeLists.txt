@@ -1,4 +1,18 @@
 # Set the source files
+set(fppFiles
+    math/activations/softmax_mod.fypp
+    )
+
+if(DEFINED CMAKE_MAXIMUM_RANK)
+  set(fyppFlags "-DMAXRANK=${CMAKE_MAXIMUM_RANK}")
+elseif(f03rank)
+  set(fyppFlags)
+else()
+  set(fyppFlags "-DVERSION90")
+endif()
+
+fypp_f90("${fyppFlags}" "${fppFiles}" outFiles)
+
 set(SRC
     data/dict_mod.f90
     data/str_mod.f90
@@ -15,7 +29,7 @@ set(SRC
     math/activations/prelu_mod.f90
     math/activations/relu_mod.f90
     math/activations/sigmoid_mod.f90
-    math/activations/softmax_mod.f90
+    #math/activations/softmax_mod.f90
     Activation_mod.f90
     Batch_norm_mod.f90
     Conv2D_mod.f90
@@ -25,7 +39,7 @@ set(SRC
     Main.f90
     Optimizer_mod.f90
     Padding2D_mod.f90
-    Pooling2D_mod.f90
+    #Pooling2D_mod.f90
     Util.f90
     W_reg_mod.f90
     Weights_mod.f90
