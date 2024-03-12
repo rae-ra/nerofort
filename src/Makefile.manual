@@ -1,0 +1,108 @@
+RCFYPP =\
+        math/activations/softmax_mod.fypp \
+        
+SRC = \
+    data/dict_mod.f90 \
+    data/str_mod.f90 \
+    math/clip_mod.f90 \
+    math/data_types.f90 \
+    math/einsum_mod.f90 \
+    math/Math_util.f90 \
+    math/utility_mod.f90 \
+    math/activations/d_prelu_mod.f90 \
+    math/activations/d_relu_mod.f90 \
+    math/activations/d_sigmoid_mod.f90 \
+    math/activations/d_softmax_mod.f90 \
+    math/activations/d_tanh_mod.f90 \
+    math/activations/prelu_mod.f90 \
+    math/activations/relu_mod.f90 \
+    math/activations/sigmoid_mod.f90 \
+    #math/activations/softmax_mod.f90
+    Activation_mod.f90 \
+    Batch_norm_mod.f90 \
+    Conv2D_mod.f90 \
+    Cost_mod.f90 \
+    Dense_mod.f90 \
+    Learning_rate_decay_mod.f90 \
+    Main.f90 \
+    Optimizer_mod.f90 \
+    Padding2D_mod.f90 \
+    #Pooling2D_mod.f90
+    Util.f90 \
+    W_reg_mod.f90 \
+    Weights_mod.f90 \
+      $(SRCGEN)
+
+LIB = nerofort.a
+
+
+SRCGEN = $(SRCFYPP:.fypp=.f90)
+OBJS = $(SRC:.f90=.o)
+MODS = $(OBJS:.o=.mod)
+SMODS = $(OBJS:.o=*.smod)
+
+.PHONY: all clean
+
+all: $(LIB)
+
+$(LIB): $(OBJS)
+	ar rcs $@ $(OBJS)
+
+clean:
+	$(RM) $(LIB) $(OBJS) $(MODS) $(SMODS) $(SRCGEN)
+
+%.o: %.f90
+	$(FC) $(FFLAGS) -c $<
+
+$(SRCGEN): %.f90: %.fypp common.fypp
+	fypp $(FYPPFLAGS) $< $@
+
+# Fortran module dependencies
+
+data/dict_mod.o: \
+	data/str_mod.o
+
+math/clip_mod.o:  \
+	math/data_types.o
+math/einsum_mod.o:  \
+	math/data_types.o
+math/utility_mod.o  \
+math/activations/d_prelu_mod.o  \
+math/activations/d_relu_mod.o  \
+math/activations/d_sigmoid_mod.o  \
+math/activations/d_softmax_mod.o  \
+math/activations/d_tanh_mod.o  \
+math/activations/prelu_mod.o  \
+math/activations/relu_mod.o  \
+math/activations/sigmoid_mod.o  \
+
+math/Math_util.o : \
+	math/utility_mod.o  \
+	math/activations/d_prelu_mod.o  \
+	math/activations/d_relu_mod.o  \
+	math/activations/d_sigmoid_mod.o  \
+	math/activations/d_softmax_mod.o  \
+	math/activations/d_tanh_mod.o  \
+	math/activations/prelu_mod.o  \
+	math/activations/relu_mod.o  \
+	math/activations/sigmoid_mod.o  \
+	math/activations/softmax_mod.o \
+	math/clip_mod.o \
+	math/data_types.o \
+	math/einsum_mod.o \
+	math/utility_mod.o \
+
+#math/activations/softmax_mod.o 
+Activation_mod.o  \
+Batch_norm_mod.o  \
+Conv2D_mod.o  \
+Cost_mod.o  \
+Dense_mod.o  \
+Learning_rate_decay_mod.o  \
+Main.o  \
+Optimizer_mod.o  \
+Padding2D_mod.o  \
+#Pooling2D_mod.o 
+Util.o  \
+W_reg_mod.o  \
+Weights_mod.o  \
