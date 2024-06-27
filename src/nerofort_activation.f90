@@ -1,5 +1,5 @@
-module Activation_mod
-    use Math_util
+module nerofort_activation
+    use nerofort_math
     implicit none
     private
     public :: create_activation
@@ -182,4 +182,4 @@ contains
         dx = dz * f_prime
     end function internal_backpropagation
 
-end module Activation_mod
+end module nerofort_activation

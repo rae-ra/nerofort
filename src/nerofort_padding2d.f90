@@ -1,19 +1,19 @@
-module Padding2D_mod
-    use Math_UTIL, only: dp
+module nerofort_padding2d
+    use nerofort_math, only: dp
     implicit none
 
     private
     public :: Padding_init, pad_get_dim, pad_forward, &
         pad_backward
 
-    type, public :: Padding2D
+    type, public :: padding
         character(len=:), allocatable :: ptype
         integer :: pt, pb, pl, pr, pint, ph, pw
         integer :: m, Nc, Nh, Nw
         integer :: output_shape(4)
         real, allocatable :: zeros_r(:,:,:,:), zeros_l(:,:,:,:)
         real, allocatable :: zeros_t(:,:,:,:), zeros_b(:,:,:,:)
-    end type Padding2D
+    end type padding
 
     interface pad_get_dim
         module procedure :: Padding_get_dimensions
@@ -32,7 +32,7 @@ module Padding2D_mod
     contains
 
     subroutine Padding_init(this, p, pint, ph, pw)
-        class(Padding2D), intent(inout) :: this
+        class(padding), intent(inout) :: this
         character(len=*), intent(in), optional :: p
         integer, intent(in), optional :: pint, ph, pw
 
@@ -61,7 +61,7 @@ module Padding2D_mod
 
     !TEST needed
     subroutine Padding_get_dimensions(this, input_shape, kernel_size, s)
-        type(Padding2D), intent(inout) :: this
+        type(padding), intent(inout) :: this
         integer, intent(in) :: input_shape(:), kernel_size(2), s(2)
         integer :: Kh, Kw, sh, sw
 
@@ -121,7 +121,7 @@ module Padding2D_mod
 
     !TEST needed
     subroutine Padding_forward_4(this, X, kernel_size, s, Xp)
-        type(Padding2D), intent(inout) :: this
+        type(padding), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
         integer, intent(in) :: kernel_size(2), s(2)
         real(dp), allocatable, intent(out) :: Xp(:,:,:,:)
@@ -157,7 +157,7 @@ module Padding2D_mod
 
     !TEST needed
     subroutine Padding_forward_3(this, X, kernel_size, s, Xp)
-        type(Padding2D), intent(inout) :: this
+        type(padding), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:)
         integer, intent(in) :: kernel_size(2), s(2)
         real(dp), allocatable, intent(out) :: Xp(:,:,:)
@@ -193,7 +193,7 @@ module Padding2D_mod
 
     !TEST needed
     function Padding_backpropagation_4(this, dXp) result (dX)
-        type(Padding2D), intent(in) :: this
+        type(padding), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:,:)
         real(dp), allocatable :: dX(:,:,:,:)
         integer :: m, Nc, Nh, Nw
@@ -209,7 +209,7 @@ module Padding2D_mod
 
     !TEST needed
     function Padding_backpropagation_3(this, dXp) result (dX)
-        type(Padding2D), intent(in) :: this
+        type(padding), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:)
         real(dp), allocatable :: dX(:,:,:)
         integer :: m, Nc, Nh, Nw
@@ -236,4 +236,4 @@ module Padding2D_mod
         zeros_arr = 0.0
     end subroutine zeros_array
 
-end module Padding2D_mod
+end module nerofort_padding2d

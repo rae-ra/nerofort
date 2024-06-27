@@ -1,4 +1,4 @@
-module d_tanh_mod
+module math_act_d_tanh
     use data_types
     implicit none
     private
@@ -19,4 +19,4 @@ module d_tanh_mod
         
     end function d_tanh_dp
 
-end module d_tanh_mod
+end module math_act_d_tanh

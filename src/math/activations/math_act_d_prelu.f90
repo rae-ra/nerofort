@@ -1,4 +1,4 @@
-module d_prelu_mod
+module math_act_d_prelu
     use data_types
     implicit none
     private
@@ -20,4 +20,4 @@ module d_prelu_mod
 
 
 
-end module d_prelu_mod
+end module math_act_d_prelu

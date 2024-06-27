@@ -1,5 +1,5 @@
-module Weights_mod
-    use Math_UTIL, only: dp
+module nerofort_weights
+    use nerofort_math, only: dp
     implicit none
 
     private
@@ -132,4 +132,4 @@ contains
 
     end function glorot_initializer
 
-end module Weights_mod
+end module nerofort_weights

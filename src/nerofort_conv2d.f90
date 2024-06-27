@@ -1,14 +1,14 @@
-module Conv2D_mod
-    use Padding2D_mod
-    use Activation_mod, only: Activation
-    use Weights_mod, only: Weights
-    use Optimizer_mod
-    use Math_UTIL, only: dp, einsum
+module nerofort_conv2d
+    use nerofort_padding2D
+    use nerofort_activation, only: Activation
+    use nerofort_weights, only: Weights
+    use nerofort_optimizer
+    use nerofort_math, only: dp, einsum
     use str_mod
     implicit none
 
     type :: Conv2D
-        type(Padding2D) :: padding
+        type(padding) :: conv_pad
         real(dp), allocatable :: W(:,:) ! weights
         integer :: F
         integer :: input_shape_x(4)
@@ -50,7 +50,7 @@ module Conv2D_mod
         integer, intent(in), optional :: input_shape(4)
 
         !this%padding%init_Padding2D(p)
-        call Padding_init(this%padding, p)
+        call Padding_init(this%conv_pad, p)
 
 
         this%F = filters
@@ -98,13 +98,13 @@ module Conv2D_mod
 
         !> init padding
         this%input_shape_x = input_shape
-        call pad_get_dim(this%padding, this%input_shape_x, &
+        call pad_get_dim(this%conv_pad, this%input_shape_x, &
             this%kernel_size, this%s)
 
         !> init shapes
 
         !> input shape
-        this%input_shape = this%padding%output_shape
+        this%input_shape = this%conv_pad%output_shape
 
         if (size(input_shape) == 3) then
             this%Nc = padded_shape(1)
@@ -275,7 +275,7 @@ module Conv2D_mod
         real(dp), allocatable, intent(out) :: dX(:,:,:,:)
 
         integer :: Hd, Wd, ph, pw
-        type(Padding2D) :: pad_back
+        type(padding) :: pad_back
         real(dp), allocatable :: dXp(:,:,:,:), dZ_Dp(:,:,:,:)
         type(str) :: mode
 
@@ -312,7 +312,7 @@ module Conv2D_mod
 
         this%X = X
 
-        call pad_forward(this%padding, X, this%kernel_size, this%s, Xp)
+        call pad_forward(this%conv_pad, X, this%kernel_size, this%s, Xp)
 
         call convolve(Xp, this%K, this%s, mode="front", XD = Z)
 
@@ -334,9 +334,9 @@ module Conv2D_mod
         integer :: m, Nc, Nh, Nw
         integer :: i
         integer :: Hd, Wd, ph, pw
-        type(Padding2D) :: pad_back
+        type(padding) :: pad_back
 
-        call pad_forward(this%padding, this%X, this%kernel_size, this%s, Xp)
+        call pad_forward(this%conv_pad, this%X, this%kernel_size, this%s, Xp)
 
         m  = size(Xp,1)
         Nc = size(Xp,2)
@@ -396,4 +396,4 @@ module Conv2D_mod
     end subroutine update
 
 
-end module Conv2D_mod
+end module nerofort_conv2d

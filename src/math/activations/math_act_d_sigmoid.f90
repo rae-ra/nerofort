@@ -1,6 +1,6 @@
-module d_sigmoid_mod
+module math_act_d_sigmoid
     use data_types
-    use sigmoid_mod
+    use math_act_sigmoid
     implicit none
     private
     public :: d_sigmoid
@@ -22,4 +22,4 @@ module d_sigmoid_mod
     end function d_sigmoid_dp
 
 
-end module d_sigmoid_mod
+end module math_act_d_sigmoid

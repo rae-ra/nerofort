@@ -1,9 +1,9 @@
-module Dense_mod
-    use Activation_mod, only: Activation
-    use Weights_mod, only: Weights
-    use Optimizer_mod, only: Optimizer, get_optimization, optimizer_init
-    use Math_util, only :dp
-    use w_reg_mod
+module nerofort_dense
+    use nerofort_activation, only: Activation
+    use nerofort_weights, only: Weights
+    use nerofort_optimizer, only: Optimizer, get_optimization, optimizer_init
+    use nerofort_math, only :dp
+    use nerofort_w_reg
     implicit none
 
     private
@@ -146,4 +146,4 @@ contains
         end if
     end subroutine update
 
-end module Dense_mod
+end module nerofort_dense

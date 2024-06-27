@@ -1,5 +1,5 @@
-module Optimizer_mod
-    use Math_UTIL, only: dp
+module nerofort_optimizer
+    use nerofort_math, only: dp
     implicit none
     private
     public :: Optimizer, optimizer_init, get_optimization
@@ -226,4 +226,4 @@ contains
 
     end subroutine get_optimization_dp
 
-end module Optimizer_mod
+end module nerofort_optimizer

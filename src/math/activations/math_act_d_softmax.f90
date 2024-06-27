@@ -1,6 +1,6 @@
-module d_softmax_mod
+module math_act_d_softmax
     use data_types
-    use softmax_mod
+    use math_act_softmax
     implicit none
     private
     public :: d_softmax
@@ -72,4 +72,4 @@ module d_softmax_mod
 
     end function d_softmax_dp
 
-end module d_softmax_mod
+end module math_act_d_softmax

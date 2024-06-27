@@ -1,4 +1,4 @@
-module softmax_mod
+module math_act_softmax
     use data_types
     implicit none
     private
@@ -74,4 +74,4 @@ module softmax_mod
 
 
 
-end module softmax_mod
+end module math_act_softmax

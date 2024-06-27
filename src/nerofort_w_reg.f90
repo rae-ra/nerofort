@@ -1,5 +1,5 @@
-module W_reg_mod
-    use math_util, only: dp
+module nerofort_w_reg
+    use nerofort_math, only: dp
     implicit none
     private
     !public :: make_wreg
@@ -11,4 +11,4 @@ module W_reg_mod
 
     end type W_reg
 
-end module W_reg_mod
+end module nerofort_w_reg

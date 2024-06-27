@@ -1,5 +1,5 @@
-module Batch_norm_mod
-    use Math_UTIL, only: dp
+module nerofort_batch_norm
+    use nerofort_math, only: dp
     implicit none
 
     private
@@ -172,4 +172,4 @@ contains
         this%beta = this%beta - this%dbeta * (lr / real(m))
     end subroutine update
 
-end module Batch_norm_mod
+end module nerofort_batch_norm

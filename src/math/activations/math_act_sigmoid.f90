@@ -1,4 +1,4 @@
-module sigmoid_mod
+module math_act_sigmoid
     use data_types
     implicit none
     private
@@ -19,4 +19,4 @@ module sigmoid_mod
     
 
 
-end module sigmoid_mod
+end module math_act_sigmoid

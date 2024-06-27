@@ -1,5 +1,5 @@
-module Cost_mod
-    use Math_Util, only: dp, clip
+module nerofort_cost
+    use nerofort_math, only: dp, clip
     implicit none
 
     public :: clip
@@ -130,4 +130,4 @@ module Cost_mod
 
     end function Cost_get_d_cost
 
-end module Cost_mod
+end module nerofort_cost

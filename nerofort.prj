@@ -14,37 +14,37 @@
           },{
             "Folders":[{
                 "Folders":[],
-                "Name":"-activations",
+                "Name":"+activations",
                 "Files":[{
-                    "filename":"src/math/activations/d_prelu_mod.f90",
+                    "filename":"src/math/activations/math_act_d_prelu.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/d_relu_mod.f90",
+                    "filename":"src/math/activations/math_act_d_relu.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/d_sigmoid_mod.f90",
+                    "filename":"src/math/activations/math_act_d_sigmoid.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/d_softmax_mod.f90",
+                    "filename":"src/math/activations/math_act_d_softmax.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/d_tanh_mod.f90",
+                    "filename":"src/math/activations/math_act_d_tanh.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/prelu_mod.f90",
+                    "filename":"src/math/activations/math_act_prelu.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/relu_mod.f90",
+                    "filename":"src/math/activations/math_act_relu.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/sigmoid_mod.f90",
+                    "filename":"src/math/activations/math_act_sigmoid.f90",
                     "enabled":"1"
                   },{
-                    "filename":"src/math/activations/softmax_mod.f90",
+                    "filename":"src/math/activations/math_act_softmax.f90",
                     "enabled":"1"
                   }]
               }],
-            "Name":"-math",
+            "Name":"+math",
             "Files":[{
                 "filename":"src/math/clip_mod.f90",
                 "enabled":"1"
@@ -55,7 +55,7 @@
                 "filename":"src/math/einsum_mod.f90",
                 "enabled":"1"
               },{
-                "filename":"src/math/Math_util.f90",
+                "filename":"src/math/nerofort_math.f90",
                 "enabled":"1"
               },{
                 "filename":"src/math/utility_mod.f90",
@@ -64,51 +64,43 @@
           }],
         "Name":"+src",
         "Files":[{
-            "filename":"src/Activation_mod.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
-          },{
-            "filename":"src/Batch_norm_mod.f90",
+            "filename":"src/nerofort_activation.f90",
             "enabled":"1"
           },{
-            "filename":"src/Conv2D_mod.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
-          },{
-            "filename":"src/Cost_mod.f90",
+            "filename":"src/nerofort_batch.f90",
             "enabled":"1"
           },{
-            "filename":"src/Dense_mod.f90",
+            "filename":"src/nerofort_conv2d.f90",
             "enabled":"1"
           },{
-            "filename":"src/Learning_rate_decay_mod.f90",
+            "filename":"src/nerofort_cost.f90",
             "enabled":"1"
           },{
-            "filename":"src/Main.f90",
+            "filename":"src/nerofort_dense.f90",
             "enabled":"1"
           },{
-            "filename":"src/Optimizer_mod.f90",
+            "filename":"src/nerofort_learning_rate_decay.f90",
             "enabled":"1"
           },{
-            "filename":"src/Padding2D_mod.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
-          },{
-            "filename":"src/Pooling2D_mod.f90",
-            "enabled":"1",
-            "panel":1,
-            "open":"1"
-          },{
-            "filename":"src/Util.f90",
+            "filename":"src/main.f90",
             "enabled":"1"
           },{
-            "filename":"src/W_reg_mod.f90",
+            "filename":"src/nerofort_optimizer.f90",
             "enabled":"1"
           },{
-            "filename":"src/Weights_mod.f90",
+            "filename":"src/nerofort_padding2d.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/nerofort_pooling.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/nerofort_util.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/nerofort_w_reg.f90",
+            "enabled":"1"
+          },{
+            "filename":"src/nerofort_weights.f90",
             "enabled":"1"
           }]
       },{
@@ -143,7 +135,7 @@
     "Fortran Options":{
       "Floating Point Exception Trap":0,
       "Enforce Standard":"f2008",
-      "Initialize Variables to Zero":"false",
+      "Initialize Variables to Zero":"true",
       "Use C Preprocessor":"true",
       "Runtime Diagnostics":"false",
       "Cray Pointers":"false",
@@ -157,9 +149,9 @@
       "Processor":"generic",
       "Aggressive Loops":"false",
       "Debugging":"true",
-      "Optimization Mode":0,
+      "Optimization Mode":3,
       "Profiling":"false",
-      "Link Time Optimization":"false"
+      "Link Time Optimization":"true"
     },
     "Build Dependencies":1,
     "Launch Options":{

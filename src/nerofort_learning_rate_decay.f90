@@ -1,5 +1,5 @@
-module Learning_rate_decay_mod
-    use Math_UTIL, only: dp
+module nerofort_learning_rate_decay
+    use nerofort_math, only: dp
     implicit none
     private
     public :: constant, time_decay, step_decay, expon_decay
@@ -59,4 +59,4 @@ contains
         res = lr_0 * exp(-k * real(t))
     end function expon_decay_dp
 
-end module Learning_rate_decay_mod
+end module nerofort_learning_rate_decay
