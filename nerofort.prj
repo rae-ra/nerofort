@@ -3,7 +3,7 @@
     "Folders":[{
         "Folders":[{
             "Folders":[],
-            "Name":"-data",
+            "Name":"+data",
             "Files":[{
                 "filename":"src/data/dict_mod.f90",
                 "enabled":"1"
@@ -64,6 +64,9 @@
           }],
         "Name":"+src",
         "Files":[{
+            "filename":"src/main.f90",
+            "enabled":"1"
+          },{
             "filename":"src/nerofort_activation.f90",
             "enabled":"1"
           },{
@@ -80,9 +83,6 @@
             "enabled":"1"
           },{
             "filename":"src/nerofort_learning_rate_decay.f90",
-            "enabled":"1"
-          },{
-            "filename":"src/main.f90",
             "enabled":"1"
           },{
             "filename":"src/nerofort_optimizer.f90",
@@ -105,9 +105,12 @@
           }]
       },{
         "Folders":[],
-        "Name":"-test",
+        "Name":"+test",
         "Files":[{
             "filename":"test/Activation_test.f08",
+            "enabled":"1"
+          },{
+            "filename":"test/test_pooling2d.f90",
             "enabled":"1"
           }]
       }],
@@ -137,7 +140,7 @@
       "Enforce Standard":"f2008",
       "Initialize Variables to Zero":"true",
       "Use C Preprocessor":"true",
-      "Runtime Diagnostics":"false",
+      "Runtime Diagnostics":"true",
       "Cray Pointers":"false",
       "Disable Floating Point Exception Warnings":0,
       "Enable OpenMP":"false",

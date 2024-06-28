@@ -1,15 +1,16 @@
 module nerofort_pooling2d
     use nerofort_padding2d
     use nerofort_conv2d, only: prepare_submatrix
-    use nerofort_math, only: dp, to_integer
+    use nerofort_math, only: dp, to_integer, kron
     implicit none
 
-    type :: Pooling2D
+    type :: pooling2d
         type(padding) :: pool_pad
         integer :: pool_size(2)
         integer :: s(2)
         integer :: Kh, Kw
         integer :: sh, sw
+        real(dp), allocatable :: X(:,:,:,:)
         character(len=6) :: pool_type
         contains
             procedure :: maxpool_backprop
@@ -17,27 +18,28 @@ module nerofort_pooling2d
             procedure :: backprop
             procedure :: forward
             procedure :: dZ_dZp
-    end type Pooling2D
+            procedure :: init_pooling2D
+    end type pooling2d
 
 contains
 
-    subroutine init_Pooling2D(this, pool_size, s, p, pool_type)
-        class(Pooling2D), intent(inout) :: this
-        integer, intent(in) :: pool_size(2), s(2)
-        character(len=*), intent(in) :: p, pool_type
+    subroutine init_pooling2D(this, pool_size, strides, pool_pad, pool_type)
+        class(pooling2d), intent(inout) :: this
+        integer, intent(in) :: pool_size(2), strides(2)
+        character(len=*), intent(in) :: pool_pad, pool_type
 
-        call Padding_init(this%pool_pad, p=p)
+        call Padding_init(this%pool_pad, pool_pad)
         this%pool_size = pool_size
-        this%s = s
+        this%s = strides
         this%Kh = pool_size(1)
         this%Kw = pool_size(2)
-        this%sh = s(1)
-        this%sw = s(2)
+        this%sh = strides(1)
+        this%sw = strides(2)
         this%pool_type = pool_type
-    end subroutine init_Pooling2D
+    end subroutine init_pooling2D
 
     subroutine get_dimensions(this, input_shape, output_shape)
-        class(Pooling2D), intent(inout) :: this
+        class(pooling2d), intent(inout) :: this
         integer, intent(in) :: input_shape(4)
         integer, intent(out) :: output_shape(4)
 
@@ -86,9 +88,9 @@ contains
         Ow = size(subM, 4)
 
         if (pool_type == 'max') then
-            Z = maxval(maxval(subM, dim=5), dim=6)
+            Z = maxval(maxval(subM, dim=6), dim=5)
         elseif (pool_type == 'mean') then
-            Z = sum(sum(subM, dim=5), dim=6) / &
+            Z = sum(sum(subM, dim=6), dim=5) / &
                 (size(subM, 5) * size(subM, 6))
         else
             stop "Allowed pool types are only 'max' or 'mean'."
@@ -98,14 +100,14 @@ contains
     end subroutine pooling
 
     function dZ_dZp(this, dZ) result(dZp)
-        class(Pooling2D), intent(in) :: this
+        class(pooling2d), intent(in) :: this
         real(dp), intent(in) :: dZ(:,:,:,:)
         real(dp), allocatable :: dZp(:,:,:,:)
 
-        integer :: Kh, Kw, sh, sw, jh, jw, L, l1_size, l2_size, i
+        integer :: Kh, Kw, sh, sw, jh, jw, L, l_size, i
         integer, dimension(:), allocatable :: mask
         logical, dimension(:), allocatable :: mask_logical
-        integer, allocatable :: l1(:), l2(:), r1(:), r2(:) 
+        integer, allocatable :: l1(:), l2(:), r1(:), r2(:)
         real(dp), allocatable :: ones_4(:,:,:,:)
 
         Kh = this%pool_size(1)
@@ -113,9 +115,9 @@ contains
         sh = this%s(1)
         sw = this%s(2)
 
+        ! Perform Kronecker product to expand dZ to dZp
         allocate(ones_4(Kh, Kw, 1, 1))
         ones_4 = 1.0_dp
-
         call kron(dZ, ones_4, dZp)
 
         jh = Kh - sh
@@ -123,54 +125,62 @@ contains
 
         if (jw /= 0) then
             L = size(dZp, 4) - 1
-            l1_size = L - sw + 1
-            l2_size = L - sw - jw + 1
+            l_size = L - sw + 1
 
-            allocate(l1(l1_size), l2(l2_size))
+            allocate(l1(l_size), l2(l_size))
 
-            l1 = [(sw + i - 1, i = 1, l1_size)]
-            l2 = [(sw + jw + i - 1, i = 1, l2_size)]
+            l1 = [(sw + i - 1, i = 1, l_size)]
+            l2 = [(sw + jw + i - 1, i = 1, l_size)]
 
-            mask_logical = mod([(i, i = 1, l1_size)], jw) /= 0
-            mask = to_integer(mask_logical)
+            ! Create the mask
+            allocate(mask_logical(l_size))
+            mask_logical = mod([(i, i = 1, l_size)], jw) < jw/2
+            allocate(mask(count(mask_logical)))
+            mask = pack([(i, i = 1, l_size)], mask_logical)
 
-            r1 = pack(l1, mask_logical)
-            r2 = pack(l2, mask_logical)
+            allocate(r1(size(mask)), r2(size(mask)))
+            r1 = l1(mask)
+            r2 = l2(mask)
 
             dZp(:, :, :, r1) = dZp(:, :, :, r1) + dZp(:, :, :, r2)
+            ! Using array slicing instead of pack with dim
+            dZp = dZp(:, :, :, pack([(i, i = 1, size(dZp, 4))], .not. mask_logical))
 
-            dZp = pack(dZp(:,:,:), .not. mask, dim=4)
-
-            deallocate(l1, l2, r1, r2)
+            deallocate(l1, l2, r1, r2, mask_logical, mask)
         endif
 
         if (jh /= 0) then
             L = size(dZp, 3) - 1
-            l1_size = L - sh + 1
-            l2_size = L - sh - jh + 1
+            l_size = L - sh + 1
 
-            allocate(l1(l1_size), l2(l2_size))
+            allocate(l1(l_size), l2(l_size))
 
-            l1 = [(sh + i - 1, i = 1, l1_size)]
-            l2 = [(sh + jh + i - 1, i = 1, l2_size)]
+            l1 = [(sh + i - 1, i = 1, l_size)]
+            l2 = [(sh + jh + i - 1, i = 1, l_size)]
 
-            mask = mod([(i, i = 1, l1_size)], jh) /= 0
+            ! Create the mask
+            allocate(mask_logical(l_size))
+            mask_logical = mod([(i, i = 1, l_size)], jh) < jh/2
+            allocate(mask(count(mask_logical)))
+            mask = pack([(i, i = 1, l_size)], mask_logical)
 
-            r1 = l1(pack(mask, mask))
-            r2 = l2(pack(mask, mask))
+            allocate(r1(size(mask)), r2(size(mask)))
+            r1 = l1(mask)
+            r2 = l2(mask)
 
             dZp(:, :, r1, :) = dZp(:, :, r1, :) + dZp(:, :, r2, :)
+            ! Using array slicing instead of pack with dim
+            dZp = dZp(:, :, pack([(i, i = 1, size(dZp, 3))], .not. mask_logical), :)
 
-            dZp = pack(dZp, .not. mask, dim=3)
-
-            deallocate(l1, l2, r1, r2)
+            deallocate(l1, l2, r1, r2, mask_logical, mask)
         endif
     end function dZ_dZp
 
-    function averagepool_backprop(this, dZ, X) result(dXp)
-        class(Pooling2D), intent(in) :: this
+    subroutine averagepool_backprop(this, dZ, X, dXp)
+        class(Pooling2D), intent(inout) :: this
         real(dp), intent(in) :: dZ(:,:,:,:), X(:,:,:,:)
-        real(dp), allocatable :: dXp(:,:,:,:), dZp(:,:,:,:), Xp(:,:,:,:)
+        real(dp), allocatable :: dZp(:,:,:,:), Xp(:,:,:,:)
+        real(dp), allocatable, intent(out) :: dXp(:,:,:,:)
         type(padding) :: padb
         integer :: m, Nc, Nh, Nw, ph, pw
 
@@ -191,14 +201,16 @@ contains
         call pad_forward(padb, dZp, this%s, this%pool_size, dXp)
 
         dXp = dXp / (Nh * Nw)
-    end function averagepool_backprop
+    end subroutine averagepool_backprop
 
     function forward(this, X) result(Z)
-        class(Pooling2D), intent(in) :: this
+        class(pooling2d), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
         real(dp), allocatable :: Z(:,:,:,:)
 
         real(dp), allocatable :: Xp(:,:,:,:)
+
+        this%X = X
 
         call pad_forward(this%pool_pad, X, this%pool_size, this%s, Xp)
 
@@ -207,25 +219,26 @@ contains
         deallocate(Xp)
     end function forward
 
-    function backprop(this, dZ) result(dX)
-        class(Pooling2D), intent(in) :: this
-        real(dp), intent(in) :: dZ(:,:,:,:)
-        real(dp), allocatable :: dXp(:,:,:,:), dX(:,:,:,:)
-
-        if (this%pool_type == 'max') then
-            dXp = this%maxpool_backprop(dZ, this%X)
-        elseif (this%pool_type == 'mean') then
-            dXp = this%averagepool_backprop(dZ, this%X)
-        endif
-
-        call pad_backward(this%pool_pad, dXp, dX)
-    end function backprop
-
     function maxpool_backprop(this, dZ, X) result(dXp)
         class(Pooling2D), intent(in) :: this
         real(dp), intent(in) :: dZ(:,:,:,:), X(:,:,:,:)
         real(dp), allocatable :: dXp(:,:,:,:)
         ! Implementation needed
     end function maxpool_backprop
+
+    subroutine backprop(this, dZ, dX)
+        class(Pooling2D), intent(inout) :: this
+        real(dp), intent(in) :: dZ(:,:,:,:)
+        real(dp), allocatable :: dXp(:,:,:,:)
+        real(dp), allocatable, intent(out) :: dX(:,:,:,:)
+
+        if (this%pool_type == 'max') then
+            dXp = this%maxpool_backprop(dZ, this%X)
+        elseif (this%pool_type == 'mean') then
+            call averagepool_backprop(this, dZ, this%X, dXp)
+        endif
+
+        dX = pad_backward(this%pool_pad, dXp)
+    end subroutine backprop
 
 end module nerofort_pooling2d

@@ -1,5 +1,5 @@
-module Util
-    use Math_util, only: dp, unique_str, mean, std_dev, rand_perm
+module nerofort_util
+    use nerofort_math, only: dp, unique_str, mean, std_dev, rand_perm
     use dict_mod
     use str_mod
     implicit none
@@ -161,4 +161,4 @@ contains
         y_test = y(indices(train_size + 1:))
     end subroutine train_test_split_impl
 
-end module Util
+end module nerofort_util

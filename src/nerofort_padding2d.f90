@@ -11,8 +11,8 @@ module nerofort_padding2d
         integer :: pt, pb, pl, pr, pint, ph, pw
         integer :: m, Nc, Nh, Nw
         integer :: output_shape(4)
-        real, allocatable :: zeros_r(:,:,:,:), zeros_l(:,:,:,:)
-        real, allocatable :: zeros_t(:,:,:,:), zeros_b(:,:,:,:)
+        real(dp), allocatable :: zeros_r(:,:,:,:), zeros_l(:,:,:,:)
+        real(dp), allocatable :: zeros_t(:,:,:,:), zeros_b(:,:,:,:)
     end type padding
 
     interface pad_get_dim
@@ -27,7 +27,6 @@ module nerofort_padding2d
         module procedure :: Padding_backpropagation_3, &
             Padding_backpropagation_4
     end interface pad_backward
-
 
     contains
 
@@ -55,11 +54,8 @@ module nerofort_padding2d
             this%pw = -1
             this%ph = -1
         end if
-
-
     end subroutine Padding_init
 
-    !TEST needed
     subroutine Padding_get_dimensions(this, input_shape, kernel_size, s)
         type(padding), intent(inout) :: this
         integer, intent(in) :: input_shape(:), kernel_size(2), s(2)
@@ -99,10 +95,10 @@ module nerofort_padding2d
                 this%pl = this%pint
                 this%pr = this%pint
             case('tuple')
-                this%pt = this%ph /2
+                this%pt = this%ph / 2
                 this%pb = (this%ph + 1) / 2
                 this%pl = this%pw / 2
-                this%pr =(this%pw + 1) / 2
+                this%pr = (this%pw + 1) / 2
             case default
                 this%pt = 0
                 this%pb = 0
@@ -119,7 +115,6 @@ module nerofort_padding2d
         end if
     end subroutine Padding_get_dimensions
 
-    !TEST needed
     subroutine Padding_forward_4(this, X, kernel_size, s, Xp)
         type(padding), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:,:)
@@ -127,7 +122,7 @@ module nerofort_padding2d
         real(dp), allocatable, intent(out) :: Xp(:,:,:,:)
         integer :: m, Nc, Nh, Nw, l, k, padded_Nh, padded_Nw
 
-        call Padding_get_dimensions(this, shape(X),kernel_size,s)
+        call Padding_get_dimensions(this, shape(X), kernel_size, s)
 
         m = this%m
         Nc = this%Nc
@@ -137,25 +132,14 @@ module nerofort_padding2d
         padded_Nh = Nh + this%pt + this%pb
         padded_Nw = Nw + this%pl + this%pr
 
-        ! Padding top and bottom
-        Xp(:, :, 1:this%pt, :) = 0.0
-        Xp(:, :, padded_Nh-this%pb+1:padded_Nh, :) = 0.0
-        Xp(:, :, this%pt+1:padded_Nh-this%pb, :) = X
+        allocate(Xp(m, Nc, padded_Nh, padded_Nw))
+        Xp = 0.0
 
-        ! Padding left and right
-        do l = 1, Nc
-            do k = 1, padded_Nh
-                Xp(:, l, k, 1:this%pl) = 0.0
-                Xp(:, l, k, padded_Nw-this%pr+1:padded_Nw) = 0.0
-                Xp(:, l, k, this%pl+1:padded_Nw-this%pr) = &
-                    Xp(:, l, k, this%pl+1:padded_Nw-this%pr) &
-                                            + X(:, l, k, :)
-            end do
-        end do
+        ! Padding top and bottom
+        Xp(:, :, this%pt+1:padded_Nh-this%pb, this%pl+1:padded_Nw-this%pr) = X
 
     end subroutine Padding_forward_4
 
-    !TEST needed
     subroutine Padding_forward_3(this, X, kernel_size, s, Xp)
         type(padding), intent(inout) :: this
         real(dp), intent(in) :: X(:,:,:)
@@ -163,9 +147,8 @@ module nerofort_padding2d
         real(dp), allocatable, intent(out) :: Xp(:,:,:)
         integer :: m, Nc, Nh, Nw, l, k, padded_Nh, padded_Nw
 
-        call Padding_get_dimensions(this, shape(X),kernel_size,s)
+        call Padding_get_dimensions(this, shape(X), kernel_size, s)
 
-        m = this%m
         Nc = this%Nc
         Nh = this%Nh
         Nw = this%Nw
@@ -173,26 +156,15 @@ module nerofort_padding2d
         padded_Nh = Nh + this%pt + this%pb
         padded_Nw = Nw + this%pl + this%pr
 
-        ! Padding top and bottom
-        Xp(:, :, 1:this%pt) = 0.0
-        Xp(:, :, padded_Nh-this%pb+1:padded_Nh) = 0.0
-        Xp(:, :, this%pt+1:padded_Nh-this%pb) = X
+        allocate(Xp(Nc, padded_Nh, padded_Nw))
+        Xp = 0.0
 
-        ! Padding left and right
-        do l = 1, Nc
-            do k = 1, padded_Nh
-                Xp( l, k, 1:this%pl) = 0.0
-                Xp( l, k, padded_Nw-this%pr+1:padded_Nw) = 0.0
-                Xp( l, k, this%pl+1:padded_Nw-this%pr) = &
-                    Xp( l, k, this%pl+1:padded_Nw-this%pr) &
-                                            + X( l, k, :)
-            end do
-        end do
+        ! Padding top and bottom
+        Xp(:, this%pt+1:padded_Nh-this%pb, this%pl+1:padded_Nw-this%pr) = X
 
     end subroutine Padding_forward_3
 
-    !TEST needed
-    function Padding_backpropagation_4(this, dXp) result (dX)
+    function Padding_backpropagation_4(this, dXp) result(dX)
         type(padding), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:,:)
         real(dp), allocatable :: dX(:,:,:,:)
@@ -203,34 +175,31 @@ module nerofort_padding2d
         Nh = this%Nh
         Nw = this%Nw
 
+        allocate(dX(m, Nc, Nh, Nw))
         dX = dXp(:, :, this%pt+1:this%pt+Nh, this%pl+1:this%pl+Nw)
-
     end function Padding_backpropagation_4
 
-    !TEST needed
-    function Padding_backpropagation_3(this, dXp) result (dX)
+    function Padding_backpropagation_3(this, dXp) result(dX)
         type(padding), intent(in) :: this
         real(dp), intent(in) :: dXp(:,:,:)
         real(dp), allocatable :: dX(:,:,:)
-        integer :: m, Nc, Nh, Nw
+        integer :: Nc, Nh, Nw
 
-        m = this%m
         Nc = this%Nc
         Nh = this%Nh
         Nw = this%Nw
 
-        dX = dXp( :, this%pt+1:this%pt+Nh, this%pl+1:this%pl+Nw)
-
+        allocate(dX(Nc, Nh, Nw))
+        dX = dXp(:, this%pt+1:this%pt+Nh, this%pl+1:this%pl+Nw)
     end function Padding_backpropagation_3
 
-    !TEST needed
     subroutine zeros_array(output_shape, shape_arr, zeros_arr)
         integer, intent(in) :: shape_arr(:)
         integer, intent(out) :: output_shape(:)
         real(dp), allocatable, intent(out) :: zeros_arr(:,:,:,:)
 
         output_shape = shape_arr
-        allocate(zeros_arr(output_shape(1), output_shape(2),output_shape(3), &
+        allocate(zeros_arr(output_shape(1), output_shape(2), output_shape(3), &
             output_shape(4)))
 
         zeros_arr = 0.0
